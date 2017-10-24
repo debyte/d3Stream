@@ -1,21 +1,16 @@
-module.exports = function (options) {
-  'use strict';
+module.exports = {
 
-  var defaults = {
+  height: 200,
+  marginTop: 10,
+  marginLeft: 40,
+  marginRight: 30,
+  marginBottom: 30,
 
-    height: 200,
-    maxBandWidth: 50,
-    margin: {
-      top: 10,
-      left: 40,
-      right: 30,
-      bottom: 30,
-    },
+  lineDotRange: [3, 10],
+  barMargin: 0.2,
 
-    bandPadding: 0.2,
-    histogramBands: 25,
-    ticksY: 4,
-  };
+  combine: true,
+  combineMany: true,
 
-  return $.extend(true, {}, defaults, options);
+  transitionDuration: 500,
 };

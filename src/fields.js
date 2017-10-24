@@ -1,3 +1,5 @@
+/* function buildFields
+
 module.exports = function (model, width, height) {
   'use strict';
   var utility = require('./utility.js');

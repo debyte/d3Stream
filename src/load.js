@@ -1,40 +1,28 @@
-module.exports = function (model, callback) {
-  'use strict';
+var transform = require('./transform.js');
 
-  if (model.url) {
-    if (model.format == 'csv') {
-      d3.csv(model.url, onLoad);
+module.exports = function (options, update) {
+
+  if (options.url) {
+    if (options.format == 'csv') {
+      d3.csv(options.url, onLoad);
+    } else if (options.format == 'tsv') {
+      d3.tsv(options.url, onLoad);
+    } else if (options.format == 'xml') {
+      d3.xml(options.url, onLoad);
     } else {
-      d3.json(model.url, onLoad);
+      d3.json(options.url, onLoad);
     }
   } else {
-    onLoad(undefined, model.data || []);
+    onLoad(undefined, options.data || []);
   }
 
   function onLoad(error, data) {
-    if (error) {
-      return callback(error);
-    }
-    if (model.navigate) {
-      var parts = model.navigate.split('.');
-      for (var i = 0; i < parts.length; i++) {
-        if (data[parts[i]] === undefined) {
-          return callback('Failed to navigate data: ' + parts[i]);
-        }
-        data = data[parts[i]];
-      }
-    }
-    model.data = [].concat(data);
-    onArray();
+    if (error) throw error;
+    update(
+      transform._apply([].concat(data), options.transform),
+      options.target,
+      options.append
+    );
   }
 
-  function onArray() {
-    if (model.prepend) {
-      model.data = model.prepend.concat(model.data);
-    }
-    if (model.append) {
-      model.data = model.data.concat(model.append);
-    }
-    callback();
-  }
 };

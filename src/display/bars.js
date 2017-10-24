@@ -1,9 +1,42 @@
-module.exports = function (model) {
-  'use strict';
-  var utility = require('./utility.js');
+var DU = require('./utility.js');
 
-  return {
+module.exports = {
+  barDiagram: barDiagram,
+};
 
+function barDiagram(plot, size, domains, data, select, options) {
+  var width = size.inWidth;
+  var height = size.inHeight;
+  var barWidth = (1.0 - options.barMargin) * width / data.length;
+  var scales = DU.scaleFunctions(options);
+  var t = DU.transition(options);
+
+  var x = scales.x([0, width], domains.x, options);
+  var y = scales.y([height, 0], domains.y, options);
+
+  var bars = plot.selectAll('.desummary-bar').data(data);
+  bars.enter()
+    .append('rect')
+    .attr('class', 'desummary-bar')
+    .attr('x', function (d) { return x(d.x) - barWidth / 2; })
+    .attr('y', y(0))
+    .attr('width', barWidth)
+    .attr('height', 0)
+    .on('mouseover', select.over)
+    .on('mouseout', select.out)
+    .on('click', select.click)
+  .merge(bars)
+    .transition(t)
+    .attr('x', function (d) { return x(d.x) - barWidth / 2; })
+    .attr('y', function (d) { return y(d.y); })
+    .attr('width', barWidth)
+    .attr('height', function (d) { return height - y(d.y); });
+  bars.exit().remove();
+
+  return { x: x, y: y };
+}
+
+/*
     histogram: function (element, outWidth, outHeight, vals) {
       return init(element, outWidth, outHeight, update, vals);
 
@@ -121,41 +154,4 @@ module.exports = function (model) {
     },
 
   };
-
-  function inWidth(outWidth, bandCount) {
-    return Math.min(
-      outWidth - model.margin.left - model.margin.right,
-      bandCount ? bandCount * model.maxBandWidth : outWidth
-    );
-  }
-
-  function inHeight(outHeight) {
-    return outHeight - model.margin.top - model.margin.bottom;
-  }
-
-  function init(element, width, height, update, vals) {
-    var svg = d3.select(element).append('svg')
-      .attr('class', 'd3')
-      .attr('width', width)
-      .attr('height', height);
-    svg.append('g')
-      .attr('class', 'd3-plot')
-      .attr('transform', 'translate(' + model.margin.left + ',' + model.margin.top + ')');
-    update(vals);
-    return {
-      update: update,
-    };
-  }
-
-  function selectPlotWithAxis(element, x, y, bandCount, height) {
-    var g = d3.select(element).selectAll('.d3-plot');
-    var d = x.domain();
-    g.append('g')
-      .attr('transform', 'translate(0,' + height + ')')
-      .call(d3.axisBottom(x).ticks(bandCount));
-    g.append('g')
-      .call(d3.axisLeft(y).ticks(model.ticksY));
-    return g;
-  }
-
-};
+*/

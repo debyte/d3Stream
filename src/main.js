@@ -1,35 +1,84 @@
+var U = require('./utility.js');
+var transform = require('./transform.js');
+var display = require('./display/main.js');
+var selector = require('./display/selector.js');
+var loader = require('./load.js');
+var resize = require('./resize.js');
+var defaults = require('./config.js');
+
 /* Blatantly write over global deSummary. */
-window.deSummary = function(element, options) {
-  'use strict';
+window.deSummary = U.assign(
+  transform,
+  display,
+  {
+    load: load,
+    u: U,
+  }
+);
 
-  var $element = $(element);
-  var model = require('./config.js')(options);
-  var load = require('./load.js');
-  var display = require('./display.js');
+function load(options) {
 
-  load(model.fields, onFormFields);
-  return {
+  var model = {};
+  var displays = [];
+  var select = selector(options);
+
+  var ret = {
     model: model,
-    redraw: redraw,
+    select: select,
+    update: update,
+    load: loadMore,
+    add: add,
+    addMany: addMany,
+    build: build,
   };
 
-  function onFormFields(error) {
-    if (error) console.log(error);
-    load(model.posts, onFormPosts);
+  loader(options, update);
+  resize(update);
+  return ret;
+
+  function loadMore(options2) {
+    loader(options2, update);
   }
 
-  function onFormPosts(error) {
-    if (error) console.log(error);
-    redraw();
+  function update(data, key, append) {
+    if (data) {
+      key = key || 'data';
+      model[key] = append ? (model[key] || []).concat(data) : data;
+      select.clear();
+    }
+    for (var i = 0; i < displays.length; i++) {
+      displays[i](model, i);
+    }
+    return ret;
   }
 
-  function redraw() {
-    $element.filter('.summaryjs-display').remove();
-    $element.append(display(
-      model,
-      model.width || $element.width(),
-      model.height)
-    );
+  function add(element, draw, options2) {
+    var config = U.assign(defaults, inheritOptions(options), options2);
+    displays.push(display._wrap(element, draw, select, config));
+    update();
+    return ret;
   }
 
-};
+  function addMany(element, draw, options2) {
+    var config = U.assign(defaults, inheritOptions(options), options2);
+    displays.push(display._wrapMany(element, draw, select, config));
+    update();
+    return ret;
+  }
+
+  function build(element, builder, options2) {
+    displays.push(function (model) {
+      builder(element, ret, options2);
+    });
+    update();
+    return ret;
+  }
+
+}
+
+function inheritOptions(options) {
+  return {
+    domain: options.domain,
+    scale: options.scale,
+  };
+}
