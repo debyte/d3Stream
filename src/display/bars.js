@@ -1,157 +1,126 @@
+var U = require('../utility.js');
 var DU = require('./utility.js');
 
 module.exports = {
   barDiagram: barDiagram,
+  stackedBarDiagram: stackedBarDiagram,
+  groupedBarDiagram: groupedBarDiagram,
 };
 
-function barDiagram(plot, size, domains, data, select, options) {
+function barDiagram(plot, size, axis, data, select, options) {
   var width = size.inWidth;
   var height = size.inHeight;
-  var barWidth = (1.0 - options.barMargin) * width / data.length;
-  var scales = DU.scaleFunctions(options);
+  prepareAxis(axis, width, height);
+  var bw = getBarWidth(width, axis.x.scale, data.length, options);
   var t = DU.transition(options);
-
-  var x = scales.x([0, width], domains.x, options);
-  var y = scales.y([height, 0], domains.y, options);
 
   var bars = plot.selectAll('.desummary-bar').data(data);
   bars.enter()
     .append('rect')
     .attr('class', 'desummary-bar')
-    .attr('x', function (d) { return x(d.x) - barWidth / 2; })
-    .attr('y', y(0))
-    .attr('width', barWidth)
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', axis.y.scale(0))
+    .attr('width', bw[0])
     .attr('height', 0)
     .on('mouseover', select.over)
     .on('mouseout', select.out)
     .on('click', select.click)
   .merge(bars)
     .transition(t)
-    .attr('x', function (d) { return x(d.x) - barWidth / 2; })
-    .attr('y', function (d) { return y(d.y); })
-    .attr('width', barWidth)
-    .attr('height', function (d) { return height - y(d.y); });
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', function (d) { return axis.y.pick(d); })
+    .attr('width', bw[0])
+    .attr('height', function (d) { return height - axis.y.pick(d); });
   bars.exit().remove();
-
-  return { x: x, y: y };
 }
 
-/*
-    histogram: function (element, outWidth, outHeight, vals) {
-      return init(element, outWidth, outHeight, update, vals);
-
-      function update(vals) {
-        vals = vals.map(utility.toNumber).filter(utility.isNotNaN);
-        var min = d3.min(vals), max = d3.max(vals), d = max - min;
-        var bins = d3.histogram()
-          .domain([d > 0 ? min : (min - 0.5), d > 0 ? max : (max + 0.5)])
-          .thresholds(model.histogramBands)
-          (vals);
-        var width = inWidth(outWidth, bins.length);
-        var height = inHeight(outHeight);
-
-        var x = d3.scaleLinear().range([0, width]).domain([
-          d3.min(bins, utility.pick('x0')),
-          d3.max(bins, utility.pick('x1')),
-        ]).nice();
-        var y = d3.scaleLinear().range([height, 0]).domain([
-          0,
-          d3.max(bins, utility.pick('length')),
-        ]);
-
-        var g = selectPlotWithAxis(element, x, y, bins.length, height);
-        g.selectAll('.d3-bin')
-          .data(bins)
-        .enter()
-          .append('rect')
-          .attr('class', 'd3-bin')
-          .attr('shape-rendering', 'crispEdges')
-          .attr('x', function (d) { return x(d.x0); })
-          .attr('y', function (d) { return y(d.length); })
-          .attr('width', function (d) { return x(d.x1) - x(d.x0); })
-          .attr('height', function (d) { return height - y(d.length); })
-        .exit()
-          .remove();
-      }
+function stackedBarDiagram(plot, size, axis, data, select, options) {
+  data = U.reduce(
+    data,
+    function (data, d) {
+      var l = data.length > 0 ? data[data.length - 1].sy[1] : 0;
+      d.sy = [ l, l + d[axis.y.a] ];
+      data.push(d);
+      return data;
     },
+    []
+  );
+  axis.y.domain = [0, d3.max(data, function(d) { return d.sy[1]; })];
 
-    bars: function (element, outWidth, outHeight, vals, opts) {
-      return init(element, outWidth, outHeight, update, vals);
+  var width = size.inWidth;
+  var height = size.inHeight;
+  prepareAxis(axis, width, height);
+  var bw = getBarWidth(width, axis.x.scale, data.length, options);
+  var t = DU.transition(options);
 
-      function update(vals) {
-        var counts = utility.countEach(utility.splitEach(vals, '|'));
-        var width = inWidth(outWidth, opts.length);
-        var height = inHeight(outHeight);
+  var bars = plot.selectAll('.desummary-bar').data(data);
+  bars.enter()
+    .append('rect')
+    .attr('class', 'desummary-bar')
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', axis.y.scale(0))
+    .attr('width', bw[0])
+    .attr('height', 0)
+    .on('mouseover', select.over)
+    .on('mouseout', select.out)
+    .on('click', select.click)
+  .merge(bars)
+    .transition(t)
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', function (d) { return axis.y.scale(d.sy[1]); })
+    .attr('width', bw[0])
+    .attr('height', function (d) {
+      return axis.y.scale(d.sy[0]) - axis.y.scale(d.sy[1]);
+    });
+  bars.exit().remove();
+}
 
-        var x = d3.scaleBand().range([0, width])
-          .padding(model.bandPadding)
-          .domain(opts.map(utility.pick('title')));
-        var y = d3.scaleLinear().range([height, 0]).domain([
-          0,
-          d3.max(utility.values(counts)),
-        ]);
+function groupedBarDiagram(plot, size, axis, data, select, options) {
+  var width = size.inWidth;
+  var height = size.inHeight;
+  prepareAxis(axis, width, height);
+  var bw = getBarWidth(width, axis.x.scale, data.length, options);
+  var t = DU.transition(options);
 
-        var g = selectPlotWithAxis(element, x, y, opts.length, height);
-        g.selectAll('.d3-bar')
-          .data(opts)
-        .enter()
-          .append('rect')
-          .attr('class', 'd3-bar')
-          .attr('shape-rendering', 'crispEdges')
-          .attr('x', function (d) { return x(d.title); })
-          .attr('y', function (d) { return y(counts[d.key] || 0); })
-          .attr('width', x.bandwidth())
-          .attr('height', function (d) { return height - y(counts[d.key] || 0); })
-        .exit()
-          .remove();
-      }
-    },
+  var g = d3.scaleBand()
+    .domain(U.map(data, U.pick('x')))
+    .rangeRound([0, bw[0]]);
+  var gw = g.bandwidth();
 
-    texts: function (element, outWidth, outHeight, vals) {
-      update(vals);
-      return { update: update };
+  var bars = plot.selectAll('.desummary-bar').data(data);
+  bars.enter()
+    .append('rect')
+    .attr('class', 'desummary-bar')
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d.x); })
+    .attr('y', axis.y.scale(0))
+    .attr('width', gw)
+    .attr('height', 0)
+    .on('mouseover', select.over)
+    .on('mouseout', select.out)
+    .on('click', select.click)
+  .merge(bars)
+    .transition(t)
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d.x); })
+    .attr('y', function (d) { return axis.y.pick(d); })
+    .attr('width', gw)
+    .attr('height', function (d) { return height - axis.y.pick(d); });
+  bars.exit().remove();
+}
 
-      function update(vals) {
-        var $e = $(element).find('.text-values');
-        if ($e.length === 0) {
-          $e = $('<div class="text-values text-values-minimized"></div>');
-          $e.append(
-            $('<a class="handle" href="#"><span class="glyphicon glyphicon-option-horizontal"></span></a>')
-              .on('click', onHandleClick)
-          );
-          $(element).append($e);
-        } else {
-          $e.empty();
-        }
+function prepareAxis(axis, width, height) {
+  axis.x.scale.rangeRound([0, width]);
+  axis.y.domain = [
+    Math.min(0, axis.y.domain[0]),
+    Math.max(0, axis.y.domain[1])
+  ];
+  axis.y.scale.domain(axis.y.domain).rangeRound([height, 0]);
+}
 
-        var texts = [];
-        var counts = {};
-        for (var i = 0; i < vals.length; i++) {
-          var t = vals[i];
-          var n = (counts[t] || 0) + 1;
-          counts[t] = n;
-          if (n === 1) {
-            texts.push(t);
-          }
-        }
-
-        for (i = 0; i < texts.length; i++) {
-          var t2 = texts[i];
-          var n2 = counts[t2];
-          var $t = $('<pre></pre>');
-          $t.text(t2);
-          if (n2 > 1) {
-            $t.append('<span class="count">x ' + n2 + '</span>');
-          }
-          $e.append($t);
-        }
-      }
-
-      function onHandleClick(event) {
-        event.preventDefault();
-        $(this).parent().toggleClass('text-values-minimized');
-      }
-    },
-
-  };
-*/
+function getBarWidth(width, scale, count, options) {
+  if (scale.bandwidth) {
+    return [scale.bandwidth(), 0];
+  } else {
+    var bw = (1.0 - options.barMargin) * width / count;
+    return [bw, bw / 2];
+  }
+}

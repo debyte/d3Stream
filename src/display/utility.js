@@ -2,7 +2,6 @@ var U = require('../utility.js');
 var axis = require('./axis.js');
 
 module.exports = {
-  optionXyz: optionXyz,
   translate: translate,
 
   translateMargins: function (options, x, y) {
@@ -22,10 +21,6 @@ module.exports = {
 
   transition: function (options) {
     return d3.transition().duration(options.transitionDuration);
-  },
-
-  scaleFunctions: function (options) {
-    return optionXyz('scale', options, axis.scaleLinear);
   },
 
   cutToDomain: function (data, parameter, domain) {
@@ -50,14 +45,4 @@ module.exports = {
 
 function translate(x, y) {
   return 'translate(' + x + ',' + y + ')';
-}
-
-function optionXyz(key, options, def) {
-  var o = options[key] || def;
-  if (typeof o != 'object') return { x: o, y: o, z: o };
-  return {
-    x: o.x || def,
-    y: o.y || def,
-    z: o.z || def,
-  };
 }

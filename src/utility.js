@@ -2,6 +2,8 @@ module.exports = {
   map: map,
   filter: filter,
   reduce: reduce,
+  isIn: isIn,
+  removeFrom: removeFrom,
   keys: keys,
   values: values,
   assign: assign,
@@ -22,14 +24,6 @@ module.exports = {
     return val && (val.trim === undefined || val.trim() !== '');
   },
 
-  isIn: function (val, list) {
-    return list.indexOf(val) >= 0;
-  },
-
-  removeFrom: function (val, list) {
-    return list.splice(list.indexOf(val), 1);
-  },
-
   empty: function (list) {
     list.splice(0, list.length);
   },
@@ -41,33 +35,28 @@ module.exports = {
   },
 
   splitEach: function (list, sep) {
-    return reduce(
-      list,
-      function (vals, val) {
-        vals = vals.concat(val.split(sep));
-        return vals;
-      },
-      []
-    );
+    return reduce(list, function (out, val) {
+      return out.concat(val.split(sep));
+    }, []);
   },
 
   countEach: function (vals) {
-    return reduce(
-      vals,
-      function (counts, val) {
-        counts[val] = (counts[val] || 0) + 1;
-        return counts;
-      },
-      {}
-    );
+    return reduce(vals, function (out, val) {
+      out[val] = (out[val] || 0) + 1;
+      return out;
+    }, {});
   },
 
   navigate: function (data, dotPath) {
-    return [].concat(reduce(
-      dotPath.split('.'),
-      function (data, k) { return data[k]; },
-      data
-    ));
+    return [].concat(reduce(dotPath.split('.'), function (out, k) {
+      return out[k];
+    }, data));
+  },
+
+  repeat: function (data, other) {
+    return map(other, function (z) {
+      return [data, z];
+    });
   },
 
   cross: function (data, other) {
@@ -78,52 +67,41 @@ module.exports = {
     });
   },
 
-  repeat: function (data, other, callback) {
-    return map(other, function (z) {
-      return callback(data, z);
-    });
+  unique: function (data) {
+    return reduce(data, function(out, d) {
+      if (!isIn(d, out)) out.push(d);
+      return out;
+    }, []);
   },
 
   group: function (data, conditions) {
-    var groups = reduce(
-      conditions,
-      function (groups, i) {
-        groups.push([]);
-        return groups;
-      },
-      []
-    );
-    return reduce(
-      data,
-      function (groups, d) {
-        for (var i = 0; i < conditions.length; i++) {
-          if (conditions[i](d)) {
-            groups[i].push(d);
-            return groups;
-          }
+    var groups = reduce(conditions, function (out) {
+      out.push([]);
+      return out;
+    }, []);
+    return reduce(data, function (out, d) {
+      for (var i = 0; i < conditions.length; i++) {
+        if (conditions[i](d)) {
+          out[i].push(d);
+          return out;
         }
-        return groups;
-      },
-      groups
-    );
+      }
+      return out;
+    }, groups);
   },
 
   cumulate: function(data, parameters) {
     var keys = [].concat(parameters);
-    return reduce(
-      data,
-      function (out, d) {
-        if (out.length > 0) {
-          for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            d[key] = out[out.length - 1][key] + (d[key] || 0);
-          }
+    return reduce(data, function (out, d) {
+      if (out.length > 0) {
+        for (var i = 0; i < keys.length; i++) {
+          var key = keys[i];
+          d[key] = out[out.length - 1][key] + (d[key] || 0);
         }
-        out.push(d);
-        return out;
-      },
-      []
-    );
+      }
+      out.push(d);
+      return out;
+    }, []);
   },
 
 };
@@ -150,11 +128,19 @@ function filter(data, callback) {
 
 function reduce(data, callback, initial) {
   if (typeof data.reduce == 'function') return data.reduce(callback, initial);
-  var accumulator = initial;
+  var out = initial;
   for (var i = 0; i < data.length; i++) {
-    accumulator = callback(accumulator, data[i], i, data);
+    out = callback(out, data[i], i, data);
   }
-  return accumulator;
+  return out;
+}
+
+function isIn(val, list) {
+  return list.indexOf(val) >= 0;
+}
+
+function removeFrom(val, list) {
+  return list.splice(list.indexOf(val), 1);
 }
 
 function keys(obj) {
@@ -176,14 +162,10 @@ function values(obj) {
 }
 
 function assign() {
-  return reduce(
-    arguments,
-    function (merged, arg) {
-      for (var k in arg) {
-        merged[k] = arg[k];
-      }
-      return merged;
-    },
-    {}
-  );
+  return reduce(arguments, function (merged, arg) {
+    for (var k in arg) {
+      merged[k] = arg[k];
+    }
+    return merged;
+  }, {});
 }

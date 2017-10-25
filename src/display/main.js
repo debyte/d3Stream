@@ -6,17 +6,19 @@ var C_PLOT = 'desummary-plot';
 var C_AXIS_X = 'desummary-axis-x';
 var C_AXIS_Y = 'desummary-axis-y';
 var transform = require('../transform.js');
-var axis = require('./axis.js');
+var axiser = require('./axis.js');
 var lines = require('./lines.js');
 var bars = require('./bars.js');
 
 module.exports = U.assign(
-  axis,
+  axiser,
   {
     _wrap: wrap,
     _wrapMany: wrapMany,
     lineDiagram: lines.lineDiagram,
     barDiagram: bars.barDiagram,
+    groupedBarDiagram: bars.groupedBarDiagram,
+    stackedBarDiagram: bars.stackedBarDiagram,
   }
 );
 
@@ -25,10 +27,10 @@ function wrap(element, draw, select, options) {
   return function (model, n) {
     var size = getSize(display, options);
     var data = transform._apply(getData(model, options), options.transform);
-    var domains = getDomains(data, options);
+    var axis = axiser._get(data, options);
     var plot = getPlot(display, size, select, options, n, 1);
-    var scales = draw(plot, size, domains, data, select, options);
-    applyAxis(display, size, scales, options);
+    draw(plot, size, axis, data, select, options);
+    applyAxis(display, size, axis, options);
   };
 }
 
@@ -41,14 +43,13 @@ function wrapMany(element, draw, select, options) {
     for (i = 0; i < data.length; i++) {
       data[i] = transform._apply(data[i], options.transform);
     }
-    var domains = getDomains(d3.merge(data), options);
-    var scales;
+    var axis = axiser._get(data, options, true);
     for (i = 0; i < data.length; i++) {
       var plot = getPlot(display, size, select, options, n, i);
-      scales = draw(plot, size, domains, data[i], select, options);
+      draw(plot, size, axis, data[i], select, options);
     }
     while (removePlot(display, options, n, i)) i++;
-    applyAxis(display, size, scales, options);
+    applyAxis(display, size, axis, options);
   };
 }
 
@@ -77,15 +78,6 @@ function getSize(element, options) {
     height: height,
     inWidth: width - options.marginLeft - options.marginRight,
     inHeight: height - options.marginTop - options.marginBottom,
-  };
-}
-
-function getDomains(data, options) {
-  var f = DU.optionXyz('domain', options, axis.domainExtent);
-  return {
-    x: f.x(data, U.pick('x'), options),
-    y: f.y(data, U.pick('y'), options),
-    z: f.z(data, U.pick('z'), options),
   };
 }
 
@@ -128,14 +120,14 @@ function removePlot(display, options, n, i) {
   return true;
 }
 
-function applyAxis(display, size, scales, options) {
+function applyAxis(display, size, axis, options) {
   display.selectAll('svg').each(function() {
     var svg = d3.select(this);
     svg.select(DU.s(C_AXIS_X))
       .attr('transform', DU.translateMargins(options, 0, size.inHeight))
-      .call(d3.axisBottom(scales.x));
+      .call(d3.axisBottom(axis.x.scale));
     svg.select(DU.s(C_AXIS_Y))
       .attr('transform', DU.translateMargins(options))
-      .call(d3.axisLeft(scales.y));
+      .call(d3.axisLeft(axis.y.scale));
   });
 }

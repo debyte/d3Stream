@@ -8,6 +8,7 @@ module.exports = {
 
   lineDotRange: [3, 10],
   barMargin: 0.2,
+  bandPadding: 0.2,
 
   combine: true,
   combineMany: true,
