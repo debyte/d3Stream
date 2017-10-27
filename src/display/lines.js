@@ -1,10 +1,23 @@
 var DU = require('./utility.js');
 
 module.exports = {
-  lineDiagram: lineDiagram,
+  scatterPlot: scatterPlot,
+  lineChart: lineChart,
 };
 
-function lineDiagram(plot, size, axis, data, select, options) {
+function scatterPlot(plot, size, axis, data, select, options) {
+  var width = size.inWidth;
+  var height = size.inHeight;
+  axis.x.scale.rangeRound([0, width]);
+  axis.y.scale.rangeRound([height, 0]);
+  axis.z.scale.rangeRound(options.lineDotRange);
+  var t = DU.transition(options);
+
+  data = DU.cutToDomain(data, 'z', axis.z.domain);
+  drawDots(plot, data, t, axis, select);
+}
+
+function lineChart(plot, size, axis, data, select, options) {
   var width = size.inWidth;
   var height = size.inHeight;
   axis.x.scale.rangeRound([0, width]);
@@ -19,6 +32,9 @@ function lineDiagram(plot, size, axis, data, select, options) {
     var preLiner = d3.line()
       .x(function (d) { return axis.x.pick(d); })
       .y(axis.y.scale(0));
+    if (options.curveLine) {
+      preLiner.curve(d3.curveNatural);
+    }
     path = plot.append('path')
       .attr('class', 'desummary-line')
       .attr('d', preLiner(data));
@@ -26,8 +42,15 @@ function lineDiagram(plot, size, axis, data, select, options) {
   var liner = d3.line()
     .x(function (d) { return axis.x.pick(d); })
     .y(function (d) { return axis.y.pick(d); });
+  if (options.curveLine) {
+    liner.curve(d3.curveNatural);
+  }
   path.transition(t).attr('d', liner(data));
 
+  drawDots(plot, data, t, axis, select);
+}
+
+function drawDots(plot, data, t, axis, select) {
   var dots = plot.selectAll('.desummary-line-dot').data(data);
   dots.enter()
     .append('circle')

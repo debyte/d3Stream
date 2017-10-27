@@ -5,6 +5,7 @@ var C_SVG = 'desummary-svg';
 var C_PLOT = 'desummary-plot';
 var C_AXIS_X = 'desummary-axis-x';
 var C_AXIS_Y = 'desummary-axis-y';
+var C_LABELS = 'desummary-labels';
 var transform = require('../transform.js');
 var axiser = require('./axis.js');
 var lines = require('./lines.js');
@@ -15,31 +16,43 @@ module.exports = U.assign(
   {
     _wrap: wrap,
     _wrapMany: wrapMany,
-    lineDiagram: lines.lineDiagram,
-    barDiagram: bars.barDiagram,
-    groupedBarDiagram: bars.groupedBarDiagram,
-    stackedBarDiagram: bars.stackedBarDiagram,
+    scatterPlot: lines.scatterPlot,
+    lineChart: lines.lineChart,
+    barChart: bars.barChart,
+    groupedBarChart: bars.groupedBarChart,
+    stackedBarChart: bars.stackedBarChart,
   }
 );
 
 function wrap(element, draw, select, options) {
   var display = getDisplay(element, options);
-  return function (model, n) {
+  return function (model, n, clear) {
+    if (clear) {
+      display.remove();
+      return;
+    }
     var size = getSize(display, options);
     var data = transform._apply(getData(model, options), options.transform);
+    if (!data) return;
     var axis = axiser._get(data, options);
     var plot = getPlot(display, size, select, options, n, 1);
     draw(plot, size, axis, data, select, options);
     applyAxis(display, size, axis, options);
+    applyLabels(display, options);
   };
 }
 
 function wrapMany(element, draw, select, options) {
   var display = getDisplay(element, options);
-  return function (model, n) {
+  return function (model, n, clear) {
+    if (clear) {
+      display.remove();
+      return;
+    }
     var i;
     var size = getSize(display, options);
     var data = transform._apply(getData(model, options), options.transformToMany);
+    if (!data) return;
     for (i = 0; i < data.length; i++) {
       data[i] = transform._apply(data[i], options.transform);
     }
@@ -50,6 +63,7 @@ function wrapMany(element, draw, select, options) {
     }
     while (removePlot(display, options, n, i)) i++;
     applyAxis(display, size, axis, options);
+    applyLabels(display, options);
   };
 }
 
@@ -130,4 +144,23 @@ function applyAxis(display, size, axis, options) {
       .attr('transform', DU.translateMargins(options))
       .call(d3.axisLeft(axis.y.scale));
   });
+}
+
+function applyLabels(display, options) {
+  var labels = display.select(DU.s(C_LABELS));
+  if (options.labels) {
+    if (labels.empty()) {
+      labels = display.append('div')
+        .attr('class', C_LABELS);
+    }
+    labels.empty();
+    for (var i = 0; i < options.labels.length; i++) {
+      labels.append('span')
+        .attr('class', 'label-dot desummary-group-' + i);
+      labels.append('span')
+        .html(options.labels[i]);
+    }
+  } else {
+    labels.remove();
+  }
 }

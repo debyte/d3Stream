@@ -2,12 +2,12 @@ var U = require('../utility.js');
 var DU = require('./utility.js');
 
 module.exports = {
-  barDiagram: barDiagram,
-  stackedBarDiagram: stackedBarDiagram,
-  groupedBarDiagram: groupedBarDiagram,
+  barChart: barChart,
+  stackedBarChart: stackedBarChart,
+  groupedBarChart: groupedBarChart,
 };
 
-function barDiagram(plot, size, axis, data, select, options) {
+function barChart(plot, size, axis, data, select, options) {
   var width = size.inWidth;
   var height = size.inHeight;
   prepareAxis(axis, width, height);
@@ -34,9 +34,9 @@ function barDiagram(plot, size, axis, data, select, options) {
   bars.exit().remove();
 }
 
-function stackedBarDiagram(plot, size, axis, data, select, options) {
+function stackedBarChart(plot, size, axis, data, select, options) {
   data = U.reduce(
-    data,
+    options.reverseStack ? data.reverse() : data,
     function (data, d) {
       var l = data.length > 0 ? data[data.length - 1].sy[1] : 0;
       d.sy = [ l, l + d[axis.y.a] ];
@@ -56,7 +56,7 @@ function stackedBarDiagram(plot, size, axis, data, select, options) {
   var bars = plot.selectAll('.desummary-bar').data(data);
   bars.enter()
     .append('rect')
-    .attr('class', 'desummary-bar')
+    .attr('class', function (d) { return 'desummary-bar desummary-group-' + d.x; })
     .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
     .attr('y', axis.y.scale(0))
     .attr('width', bw[0])
@@ -75,7 +75,7 @@ function stackedBarDiagram(plot, size, axis, data, select, options) {
   bars.exit().remove();
 }
 
-function groupedBarDiagram(plot, size, axis, data, select, options) {
+function groupedBarChart(plot, size, axis, data, select, options) {
   var width = size.inWidth;
   var height = size.inHeight;
   prepareAxis(axis, width, height);
@@ -90,7 +90,7 @@ function groupedBarDiagram(plot, size, axis, data, select, options) {
   var bars = plot.selectAll('.desummary-bar').data(data);
   bars.enter()
     .append('rect')
-    .attr('class', 'desummary-bar')
+    .attr('class', function (d) { return 'desummary-bar desummary-bar-' + d.x; })
     .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d.x); })
     .attr('y', axis.y.scale(0))
     .attr('width', gw)

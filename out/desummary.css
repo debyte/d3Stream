@@ -10,30 +10,53 @@
 .desummary-bar {
   cursor: pointer;
   fill: white;
-  fill-opacity: 0;
   shape-rendering: crispEdges;
 }
-
-/* plot selected */
-.desummary-focus .desummary-line, .desummary-focus .desummary-bar {
-  stroke: #0003db;
+.desummary-group-0 {
+  background-color: #eeeeee;
+  fill: #eeeeee;
 }
-.desummary-selection .desummary-line, .desummary-selection .desummary-bar {
-  stroke: #db6a00;
+.desummary-group-1 {
+  background-color: #297159;
+  fill: #297159;
+}
+.desummary-group-2 {
+  background-color: #a6c760;
+  fill: #a6c760;
 }
 
-circle.desummary-focus {
+circle.desummary-focus, rect.desummary-focus,
+.desummary-focus .desummary-line-dot {
   fill: #0003db;
 }
-rect.desummary-focus {
-  fill: #bcbcbc;
-  fill-opacity: 0.5;
-}
-circle.desummary-selection, rect.desummary-selection {
+circle.desummary-selection, rect.desummary-selection,
+.desummary-selection .desummary-line-dot {
   fill: #db6a00;
-  fill-opacity: 1;
 }
 circle.desummary-focus-selection, rect.desummary-focus-selection {
   fill: #ff8717;
-  fill-opacity: 1;
+}
+
+/* plot selected */
+.desummary-plot-select .desummary-focus .desummary-line,
+.desummary-plot-select .desummary-focus .desummary-bar {
+  stroke: #0003db;
+  stroke-width: 4;
+}
+.desummary-plot-select .desummary-selection .desummary-line,
+.desummary-plot-select .desummary-selection .desummary-bar {
+  stroke: #db6a00;
+  stroke-width: 4;
+}
+
+.desummary-labels {
+  text-align: center;
+}
+.desummary-labels .label-dot {
+  border: 1px solid #212529;
+  display: inline-block;
+  height: 20px;
+  margin: 0 10px;
+  vertical-align: middle;
+  width: 20px;
 }

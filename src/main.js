@@ -30,6 +30,7 @@ function load(options) {
     add: add,
     addMany: addMany,
     build: build,
+    clear: clear,
   };
 
   loader(options, update);
@@ -67,10 +68,18 @@ function load(options) {
   }
 
   function build(element, builder, options2) {
-    displays.push(function (model) {
-      builder(element, ret, options2);
+    displays.push(function (model, n, clear) {
+      if (clear === undefined) builder(element, ret, options2);
     });
     update();
+    return ret;
+  }
+
+  function clear() {
+    for (var i = 0; i < displays.length; i++) {
+      displays[i](model, i, true);
+    }
+    U.empty(displays);
     return ret;
   }
 

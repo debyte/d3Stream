@@ -87,6 +87,10 @@ function domainIQR(data, a, options, many) {
 }
 
 function domainBands(data, a, options, many) {
-  if (many) data = d3.merge(data);
-  return { a: 'band', domain: U.unique(U.map(data, U.pick('band'))) };
+  var domain = options.scale[a + 'Bands'] || null;
+  if (!domain) {
+    if (many) data = d3.merge(data);
+    domain = U.unique(U.map(data, U.pick('band')));
+  }
+  return { a: 'band', domain: domain };
 }

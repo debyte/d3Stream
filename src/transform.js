@@ -3,7 +3,7 @@ var U = require('./utility.js');
 module.exports = {
 
   _apply: function (data, transform) {
-    if (!transform) return data;
+    if (!data || !transform) return data;
     return U.reduce(
       [].concat(transform),
       function(data, t) { return t(data); },

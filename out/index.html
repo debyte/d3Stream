@@ -19,10 +19,10 @@
           data: [5,2,3,4,4,7,4,3,5,6],
           domain: deSummary.domainPad([0.5, 1]),
           selected: deSummary.consoleLog,
-        }).add($element, deSummary.lineDiagram, {
+        }).add($element, deSummary.lineChart, {
           transform: deSummary.mapIndexedValues,
         })
-        .add($element, deSummary.barDiagram, {
+        .add($element, deSummary.barChart, {
           transform: deSummary.mapIndexedValues,
         });
 
@@ -49,7 +49,7 @@
           scale: {
             x: deSummary.scaleBand,
           },
-        }).addMany('#lines .card-body', deSummary.lineDiagram, {
+        }).addMany('#lines .card-body', deSummary.lineChart, {
           transformToMany: deSummary.cross([ '1.1', '1.2', '1.3' ]),
           transform: [
             deSummary.map(function(d, i) {
@@ -66,7 +66,7 @@
           domain: {
             z: deSummary.domainIQR,
           },
-        }).addMany('#bars .card-body', deSummary.stackedBarDiagram, {
+        }).addMany('#bars .card-body', deSummary.stackedBarChart, {
           transformToMany: [
             deSummary.repeat([ '1.1', '1.2', '1.3' ]),
             deSummary.map(function (d, i) {
