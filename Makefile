@@ -1,8 +1,10 @@
 src = src/main.js
-out_js = out/desummary.js
-out_min_js = out/desummary.min.js
-out_css = out/desummary.css
-out_min_css = out/desummary.min.css
+src_test = test/runner.js
+out_js = out/d3Stream.js
+out_test = out/d3Stream.test.js
+out_min_js = out/d3Stream.min.js
+out_css = out/d3Stream.css
+out_min_css = out/d3Stream.min.css
 
 .PHONY: all browserify watch uglify clean
 
@@ -10,9 +12,13 @@ all: browserify uglify
 
 browserify:
 	browserify $(src) -o $(out_js)
+	browserify $(src_test) -o $(out_test)
 
 watch:
 	watchify $(src) -o $(out_js)
+
+watchtest:
+	watchify $(src_test) -o $(out_test)
 
 uglify:
 	uglify -s $(out_js) -o $(out_min_js)

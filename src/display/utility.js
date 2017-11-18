@@ -1,5 +1,4 @@
 var U = require('../utility.js');
-var axis = require('./axis.js');
 
 module.exports = {
   translate: translate,
@@ -21,6 +20,12 @@ module.exports = {
 
   transition: function (options) {
     return d3.transition().duration(options.transitionDuration);
+  },
+
+  event: function (select, type) {
+    return function (d, i) {
+      select.event(type, d3.select(this), d, i);
+    };
   },
 
   cutToDomain: function (data, parameter, domain) {

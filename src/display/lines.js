@@ -5,27 +5,35 @@ module.exports = {
   lineChart: lineChart,
 };
 
-function scatterPlot(plot, size, axis, data, select, options) {
-  var width = size.inWidth;
-  var height = size.inHeight;
+function getAxis(display, data, width, height, options) {
+  var axis = {
+    x: display.axis(data, options.horizontalVariable || 'x'),
+    y: display.axis(data, options.verticalVariable || 'y'),
+    z: display.axis(data, options.scaleVariable || 'z'),
+  };
   axis.x.scale.rangeRound([0, width]);
   axis.y.scale.rangeRound([height, 0]);
   axis.z.scale.rangeRound(options.lineDotRange);
-  var t = DU.transition(options);
-
-  data = DU.cutToDomain(data, 'z', axis.z.domain);
-  drawDots(plot, data, t, axis, select);
+  return axis;
 }
 
-function lineChart(plot, size, axis, data, select, options) {
-  var width = size.inWidth;
-  var height = size.inHeight;
-  axis.x.scale.rangeRound([0, width]);
-  axis.y.scale.rangeRound([height, 0]);
-  axis.z.scale.rangeRound(options.lineDotRange);
+function scatterPlot(display, plot, fullData, serieIndex, options) {
+  var width = display.size.inWidth;
+  var height = display.size.inHeight;
+  var axis = getAxis(display, fullData, width, height, options);
+  var data = fullData[serieIndex];
   var t = DU.transition(options);
+  data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
+  drawDots(plot, data, t, axis, display.select);
+}
 
-  data = DU.cutToDomain(data, 'z', axis.z.domain);
+function lineChart(display, plot, fullData, serieIndex, options) {
+  var width = display.size.inWidth;
+  var height = display.size.inHeight;
+  var axis = getAxis(display, fullData, width, height, options);
+  var data = fullData[serieIndex];
+  var t = DU.transition(options);
+  data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
 
   var path = plot.select('.desummary-line');
   if (path.empty()) {
@@ -47,7 +55,7 @@ function lineChart(plot, size, axis, data, select, options) {
   }
   path.transition(t).attr('d', liner(data));
 
-  drawDots(plot, data, t, axis, select);
+  drawDots(plot, data, t, axis, display.select);
 }
 
 function drawDots(plot, data, t, axis, select) {
@@ -58,9 +66,9 @@ function drawDots(plot, data, t, axis, select) {
     .attr('cx', function(d) { return axis.x.pick(d); })
     .attr('cy', axis.y.scale(0))
     .attr('r', axis.z.scale(0))
-    .on('mouseover', select.over)
-    .on('mouseout', select.out)
-    .on('click', select.click)
+    .on('mouseover', DU.event(select, 'over'))
+    .on('mouseout', DU.event(select, 'out'))
+    .on('click', DU.event(select, 'click'))
   .merge(dots)
     .transition(t)
     .attr('cx', function (d) { return axis.x.pick(d); })

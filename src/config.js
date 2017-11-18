@@ -11,7 +11,6 @@ module.exports = {
   bandPadding: 0.2,
 
   combine: true,
-  combineMany: true,
 
   transitionDuration: 500,
 };
