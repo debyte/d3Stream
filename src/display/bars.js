@@ -1,6 +1,9 @@
 var U = require('../utility.js');
 var DU = require('./utility.js');
 
+C_BAR = 'd3stream-bar';
+C_GROUP = 'd3stream-group';
+
 module.exports = {
   barChart: barChart,
   stackedBarChart: stackedBarChart,
@@ -38,10 +41,10 @@ function barChart(display, plot, fullData, serieIndex, options) {
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
   var t = DU.transition(options);
 
-  var bars = plot.selectAll('.desummary-bar').data(data);
+  var bars = plot.selectAll(DU.s(C_BAR)).data(data);
   bars.enter()
     .append('rect')
-    .attr('class', 'desummary-bar')
+    .attr('class', C_BAR)
     .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
     .attr('y', axis.y.scale(0))
     .attr('width', bw[0])
@@ -78,11 +81,12 @@ function stackedBarChart(display, plot, fullData, serieIndex, options) {
   );
   axis.y.domain = [0, d3.max(data, function(d) { return d.sy[1]; })];
   axis.y.scale.domain(axis.y.domain);
+  var groupVar = options.groupVariable || 'group';
 
-  var bars = plot.selectAll('.desummary-bar').data(data);
+  var bars = plot.selectAll(DU.s(C_BAR)).data(data);
   bars.enter()
     .append('rect')
-    .attr('class', function (d) { return 'desummary-bar desummary-group-' + d[axis.x.variable]; })
+    .attr('class', function (d) { return DU.a(C_BAR, [C_GROUP, d[groupVar]].join('-')); })
     .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
     .attr('y', axis.y.scale(0))
     .attr('width', bw[0])
@@ -107,16 +111,17 @@ function groupedBarChart(display, plot, fullData, serieIndex, options) {
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
   var t = DU.transition(options);
 
+  var groupVar = options.groupVariable || 'group';
   var g = d3.scaleBand()
-    .domain(U.map(data, U.pick('x')))
+    .domain(U.map(data, U.pick(groupVar)))
     .rangeRound([0, bw[0]]);
   var gw = g.bandwidth();
 
-  var bars = plot.selectAll('.desummary-bar').data(data);
+  var bars = plot.selectAll(DU.s(C_BAR)).data(data);
   bars.enter()
     .append('rect')
-    .attr('class', function (d) { return 'desummary-bar desummary-bar-' + d[axis.x.variable]; })
-    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d[axis.x.variable]); })
+    .attr('class', function (d) { return DU.a(C_BAR, [C_GROUP, d[groupVar]].join('-')); })
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d[groupVar]); })
     .attr('y', axis.y.scale(0))
     .attr('width', gw)
     .attr('height', 0)
@@ -125,7 +130,7 @@ function groupedBarChart(display, plot, fullData, serieIndex, options) {
     .on('click', DU.event(display.select, 'click'))
   .merge(bars)
     .transition(t)
-    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d[axis.x.variable]); })
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]) + g(d[groupVar]); })
     .attr('y', function (d) { return axis.y.pick(d); })
     .attr('width', gw)
     .attr('height', function (d) { return height - axis.y.pick(d); });

@@ -52,9 +52,9 @@
                 band: pair[1],
                 payload: pair,
               };
-            });
+            })
+            .cumulate('y')
           })
-          .cumulate('y')
           .domainIQR('z')
           .domainBands('x', 'band')
           .addAxis('x', 'y')

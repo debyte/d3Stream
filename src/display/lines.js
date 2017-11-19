@@ -1,5 +1,8 @@
 var DU = require('./utility.js');
 
+C_LINE = 'd3stream-line';
+C_DOT = 'd3stream-dot';
+
 module.exports = {
   scatterPlot: scatterPlot,
   lineChart: lineChart,
@@ -35,7 +38,7 @@ function lineChart(display, plot, fullData, serieIndex, options) {
   var t = DU.transition(options);
   data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
 
-  var path = plot.select('.desummary-line');
+  var path = plot.select(DU.s(C_LINE));
   if (path.empty()) {
     var preLiner = d3.line()
       .x(function (d) { return axis.x.pick(d); })
@@ -44,7 +47,7 @@ function lineChart(display, plot, fullData, serieIndex, options) {
       preLiner.curve(d3.curveNatural);
     }
     path = plot.append('path')
-      .attr('class', 'desummary-line')
+      .attr('class', C_LINE)
       .attr('d', preLiner(data));
   }
   var liner = d3.line()
@@ -59,10 +62,10 @@ function lineChart(display, plot, fullData, serieIndex, options) {
 }
 
 function drawDots(plot, data, t, axis, select) {
-  var dots = plot.selectAll('.desummary-line-dot').data(data);
+  var dots = plot.selectAll(DU.s(C_DOT)).data(data);
   dots.enter()
     .append('circle')
-    .attr('class', 'desummary-line-dot')
+    .attr('class', C_DOT)
     .attr('cx', function(d) { return axis.x.pick(d); })
     .attr('cy', axis.y.scale(0))
     .attr('r', axis.z.scale(0))

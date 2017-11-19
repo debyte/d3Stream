@@ -57,3 +57,21 @@ Stream.prototype.update = function(data, options) {
   }
   return this;
 };
+
+Stream.prototype.contains = function (item) {
+  return U.isIn(item, this.data);
+};
+
+Stream.prototype.containedIn = function (list) {
+  return U.containedIn(this.data, list);
+};
+
+Stream.prototype.remove = function (item) {
+  U.removeFrom(item, this.data);
+  this.update();
+  return this;
+};
+
+Stream.prototype.add = function (item) {
+  return this.update(item, { append: true });
+};

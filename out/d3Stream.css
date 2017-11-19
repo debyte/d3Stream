@@ -3,7 +3,7 @@
   stroke: #212529;
   stroke-width: 1;
 }
-.d3stream-line-dot {
+.d3stream-dot {
   cursor: pointer;
   fill: #212529;
 }
@@ -17,20 +17,20 @@
   fill: #eeeeee;
 }
 .d3stream-group-1 {
-  background-color: #297159;
-  fill: #297159;
+  background-color: #aaaaaa;
+  fill: #aaaaaa;
 }
 .d3stream-group-2 {
-  background-color: #a6c760;
-  fill: #a6c760;
+  background-color: #5699fe;
+  fill: #5699fe;
 }
 
 circle.d3stream-focus, rect.d3stream-focus,
-.d3stream-focus .d3stream-line-dot {
+.d3stream-focus .d3stream-dot {
   fill: #0003db;
 }
 circle.d3stream-selection, rect.d3stream-selection,
-.d3stream-selection .d3stream-line-dot {
+.d3stream-selection .d3stream-dot {
   fill: #db6a00;
 }
 circle.d3stream-focus-selection, rect.d3stream-focus-selection {

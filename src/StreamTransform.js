@@ -37,25 +37,25 @@ StreamTransform.prototype.navigate = function (dotPath) {
 
 StreamTransform.prototype.cross = function (other) {
   return this.addTransformation(function (data) {
-    return U.cross(data, other);
+    return U.cross(data, optionalStream(other));
   });
 };
 
 StreamTransform.prototype.repeat = function (other) {
   return this.addTransformation(function (data) {
-    return U.repeat(data, other);
+    return U.repeat(data, optionalStream(other));
   });
 };
 
 StreamTransform.prototype.group = function (conditions) {
   return this.addTransformation(function (data) {
-    return U.group(data, conditions);
+    return U.group(data, optionalStream(conditions));
   });
 };
 
 StreamTransform.prototype.cumulate = function (parameters) {
   return this.addTransformation(function (data) {
-    return U.cumulate(data, parameters);
+    return U.cumulate(data, optionalStream(parameters));
   });
 };
 
@@ -67,3 +67,16 @@ StreamTransform.prototype.mapAsStreams = function (callback) {
     });
   });
 };
+
+StreamTransform.prototype.keys = function () {
+  return this.addTransformation(function (data) {
+    return data.length > 0 ? U.keys(data[0]) : [];
+  });
+};
+
+function optionalStream(input) {
+  if (typeof input.array == 'function') {
+    return input.array();
+  }
+  return input;
+}

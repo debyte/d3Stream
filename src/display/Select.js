@@ -45,25 +45,25 @@ Select.prototype.over = function (control) {
   } else {
     control.classed(C_FOCUS, true);
   }
-  d3.select(control.node.parentNode).classed(C_FOCUS, true).raise();
+  d3.select(control.node().parentNode).classed(C_FOCUS, true).raise();
 };
 
 Select.prototype.out = function (control) {
   control.classed(DU.a(C_FOCUS, C_FOCUS_SELECTION), false);
-  d3.select(control.node.parentNode).classed(C_FOCUS, false);/*.lower();*/
+  d3.select(control.node().parentNode).classed(C_FOCUS, false);/*.lower();*/
 };
 
 Select.prototype.click = function (control) {
-  if (!U.isIn(control.node, this.selected)) {
-    this.selected.push(control.node);
+  if (!U.isIn(control.node(), this.selected)) {
+    this.selected.push(control.node());
     control.classed(C_SELECTION, true);
-    d3.select(control.node.parentNode).classed(C_SELECTION, true);
+    d3.select(control.node().parentNode).classed(C_SELECTION, true);
   } else {
-    U.removeFrom(control.node, this.selected);
+    U.removeFrom(control.node(), this.selected);
     control
       .classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), false)
       .classed(C_FOCUS, true);
-    var plot = d3.select(control.node.parentNode);
+    var plot = d3.select(control.node().parentNode);
     if (plot.select(DU.s(C_SELECTION)).empty()) {
       plot.classed(C_SELECTION, false);
     }

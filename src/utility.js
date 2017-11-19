@@ -3,6 +3,7 @@ module.exports = {
   filter: filter,
   reduce: reduce,
   isIn: isIn,
+  containedIn: containedIn,
   removeFrom: removeFrom,
   keys: keys,
   values: values,
@@ -141,6 +142,15 @@ function isIn(val, list) {
 
 function removeFrom(val, list) {
   return list.splice(list.indexOf(val), 1);
+}
+
+function containedIn(items, list) {
+  for (var i = 0; i < items.length; i++) {
+    if (!isIn(items[i], list)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function keys(obj) {
