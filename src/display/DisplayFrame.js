@@ -76,19 +76,19 @@ DisplayFrame.prototype.domainBands = function (variables, bandVariable, bands) {
 
 DisplayFrame.prototype.addAxis = function (horizontalVariable, verticalVariable) {
   if (horizontalVariable) {
-    this.addFrame(xAxis, { variable: horizontalVariable });
+    this.addFrame(makeAxisBottom, { variable: horizontalVariable });
   }
   if (verticalVariable) {
-    this.addFrame(yAxis, { variable: verticalVariable });
+    this.addFrame(makeAxisLeft, { variable: verticalVariable });
   }
   return this;
 };
 
 DisplayFrame.prototype.labels = function (labels) {
-  return this.addFrame(labels, { labels: labels });
+  return this.addFrame(makeLabels, { labels: labels });
 };
 
-function xAxis(display, data, options) {
+function makeAxisBottom(display, data, options) {
   var scale = display.axis(data, options.variable).scale;
   display.display.selectAll('svg').each(function() {
     var svg = d3.select(this);
@@ -101,7 +101,7 @@ function xAxis(display, data, options) {
   });
 }
 
-function yAxis(display, data, options) {
+function makeAxisLeft(display, data, options) {
   var scale = display.axis(data, options.variable).scale;
   display.display.selectAll('svg').each(function() {
     var svg = d3.select(this);
@@ -114,16 +114,17 @@ function yAxis(display, data, options) {
   });
 }
 
-function labels(display, data, options) {
+function makeLabels(display, data, options) {
+  if (data.length == 0) return;
   var labels = display.display.select(DU.s(C_LABELS));
   if (labels.empty()) {
-    labels = display.append('div').attr('class', C_LABELS);
+    labels = display.display.append('div').attr('class', C_LABELS);
   } else {
     labels.selectAll('span').remove();
   }
   for (var i = 0; i < options.labels.length; i++) {
     labels.append('span')
-      .attr('class', 'label-dot desummary-group-' + i);
+      .attr('class', 'label-dot d3stream-group-' + i);
     labels.append('span')
       .html(options.labels[i]);
   }

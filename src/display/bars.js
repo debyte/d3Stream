@@ -6,6 +6,7 @@ C_GROUP = 'd3stream-group';
 
 module.exports = {
   barChart: barChart,
+  barChartDownwards: barChartDownwards,
   stackedBarChart: stackedBarChart,
   groupedBarChart: groupedBarChart,
 };
@@ -58,6 +59,35 @@ function barChart(display, plot, fullData, serieIndex, options) {
     .attr('y', function (d) { return axis.y.pick(d); })
     .attr('width', bw[0])
     .attr('height', function (d) { return height - axis.y.pick(d); });
+  bars.exit().remove();
+}
+
+function barChartDownwards(display, plot, fullData, serieIndex, options) {
+  var width = display.size.inWidth;
+  var height = display.size.inHeight;
+  var axis = getAxis(display, fullData, width, height, options);
+  var data = fullData[serieIndex];
+  var bw = getBarWidth(width, axis.x.scale, data.length, options);
+  var t = DU.transition(options);
+  axis.y.scale.rangeRound([0, height]);
+
+  var bars = plot.selectAll(DU.s(C_BAR)).data(data);
+  bars.enter()
+    .append('rect')
+    .attr('class', C_BAR)
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', 0)
+    .attr('width', bw[0])
+    .attr('height', 0)
+    .on('mouseover', DU.event(display.select, 'over'))
+    .on('mouseout', DU.event(display.select, 'out'))
+    .on('click', DU.event(display.select, 'click'))
+  .merge(bars)
+    .transition(t)
+    .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
+    .attr('y', function (d) { return 0; })
+    .attr('width', bw[0])
+    .attr('height', function (d) { return axis.y.pick(d); });
   bars.exit().remove();
 }
 

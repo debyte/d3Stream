@@ -21,13 +21,13 @@
   fill: #aaaaaa;
 }
 .d3stream-group-2 {
-  background-color: #5699fe;
-  fill: #5699fe;
+  background-color: #5cb85c;
+  fill: #5cb85c;
 }
 
 circle.d3stream-focus, rect.d3stream-focus,
 .d3stream-focus .d3stream-dot {
-  fill: #0003db;
+  fill: #337ab7;
 }
 circle.d3stream-selection, rect.d3stream-selection,
 .d3stream-selection .d3stream-dot {
@@ -37,15 +37,16 @@ circle.d3stream-focus-selection, rect.d3stream-focus-selection {
   fill: #ff8717;
 }
 
-/* plot selected */
-.d3stream-plot-select .d3stream-focus .d3stream-line,
-.d3stream-plot-select .d3stream-focus .d3stream-bar {
-  stroke: #0003db;
+.d3stream-focus .d3stream-line, .d3stream-focus .d3stream-bar {
+  stroke: #337ab7;
   stroke-width: 4;
 }
-.d3stream-plot-select .d3stream-selection .d3stream-line,
-.d3stream-plot-select .d3stream-selection .d3stream-bar {
+.d3stream-selection .d3stream-line, .d3stream-selection .d3stream-bar {
   stroke: #db6a00;
+  stroke-width: 4;
+}
+.d3stream-focus-selection .d3stream-line, .d3stream-focus-selection .d3stream-bar {
+  stroke: #ff8717;
   stroke-width: 4;
 }
 
@@ -59,4 +60,12 @@ circle.d3stream-focus-selection, rect.d3stream-focus-selection {
   margin: 0 10px;
   vertical-align: middle;
   width: 20px;
+}
+
+.d3stream-table {
+  margin: 1em 0;
+}
+.d3stream-table th, .d3stream-table td {
+  border: 1px solid black;
+  padding: 2px;
 }

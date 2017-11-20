@@ -29,6 +29,7 @@ DisplayBase.prototype.update = function (data) {
     this.data = data;
   }
   this.size = getSize(this.display, this.config);
+  this.select.clear();
   this.axisCache = {};
 
   var transformedData = this.array();
@@ -48,6 +49,10 @@ DisplayBase.prototype.update = function (data) {
   for (i = 0; i < this.frames.length; i++) {
     var frame = this.frames[i];
     frame[0](this, transformedData, frame[1]);
+  }
+
+  if (this.config.update) {
+    this.config.update(this, transformedData);
   }
 };
 
@@ -119,7 +124,7 @@ function getPlot(display, select, size, options, i, r) {
   var clsSvg = [C_SVG, options.combine ? 1 : r].join('-');
   var svg = display.select(DU.s(clsSvg));
   if (svg.empty()) {
-    svg = display.append('svg').attr('class', clsSvg);
+    svg = display.append('svg').attr('class', DU.a(C_SVG, clsSvg));
     select.register(svg);
   }
   svg.attr('width', size.width).attr('height', size.height);
@@ -128,7 +133,7 @@ function getPlot(display, select, size, options, i, r) {
   var plot = svg.select(DU.s(clsPlot));
   if (plot.empty()) {
     plot = svg.append('g')
-      .attr('class', clsPlot)
+      .attr('class', DU.a(C_PLOT, clsPlot))
       .attr('transform', DU.translateMargins(options));
   }
   return plot;

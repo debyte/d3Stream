@@ -33,7 +33,7 @@ Stream.prototype.load = function(url, options) {
 };
 
 Stream.prototype.display = function(element, options) {
-  var d = new Display(element, options, this.data);
+  var d = new Display(element, options, this.array());
   this.displays.push(d);
   return d;
 };
@@ -68,6 +68,12 @@ Stream.prototype.containedIn = function (list) {
 
 Stream.prototype.remove = function (item) {
   U.removeFrom(item, this.data);
+  this.update();
+  return this;
+};
+
+Stream.prototype.empty = function (item) {
+  this.data = [];
   this.update();
   return this;
 };

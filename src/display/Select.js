@@ -22,50 +22,82 @@ Select.prototype.clear = function () {
   U.empty(this.selected);
 };
 
+Select.prototype.isSelected = function (d) {
+  return U.isIn(d, this.selected);
+};
+
+Select.prototype.select = function (d) {
+  this.selected.push(d);
+};
+
+Select.prototype.deselect = function (d) {
+  U.removeFrom(d, this.selected);
+};
+
 Select.prototype.event = function (type, control, d, i) {
-  switch (type) {
-    case 'over':
-      this.over(control);
-      break;
-    case 'out':
-      this.out(control);
-      break;
-    case 'click':
-      this.click(control);
-      break;
+  if (this.config.selectPlot) {
+    selectPlot[type](this, control, d);
+  } else {
+    selectShape[type](this, control, d);
   }
   if (this.config.select && this.config.select[type]) {
-    this.config.select[type](this, control.__data__);
+    this.config.select[type](this, d);
   }
 };
 
-Select.prototype.over = function (control) {
-  if (control.classed(C_SELECTION)) {
-    control.classed(C_FOCUS_SELECTION, true);
-  } else {
-    control.classed(C_FOCUS, true);
-  }
-  d3.select(control.node().parentNode).classed(C_FOCUS, true).raise();
-};
+var selectShape = {
 
-Select.prototype.out = function (control) {
-  control.classed(DU.a(C_FOCUS, C_FOCUS_SELECTION), false);
-  d3.select(control.node().parentNode).classed(C_FOCUS, false);/*.lower();*/
-};
-
-Select.prototype.click = function (control) {
-  if (!U.isIn(control.node(), this.selected)) {
-    this.selected.push(control.node());
-    control.classed(C_SELECTION, true);
-    d3.select(control.node().parentNode).classed(C_SELECTION, true);
-  } else {
-    U.removeFrom(control.node(), this.selected);
-    control
-      .classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), false)
-      .classed(C_FOCUS, true);
-    var plot = d3.select(control.node().parentNode);
-    if (plot.select(DU.s(C_SELECTION)).empty()) {
-      plot.classed(C_SELECTION, false);
+  over: function (select, control, d) {
+    if (control.classed(C_SELECTION)) {
+      control.classed(C_FOCUS_SELECTION, true);
+    } else {
+      control.classed(C_FOCUS, true);
     }
-  }
+  },
+
+  out: function (select, control, d) {
+    control.classed(DU.a(C_FOCUS, C_FOCUS_SELECTION), false);
+  },
+
+  click: function (select, control, d) {
+    if (!select.isSelected(d)) {
+      select.select(d);
+      control.classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), true)
+        .classed(C_FOCUS, false);
+    } else {
+      select.deselect(d);
+      control.classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), false)
+        .classed(C_FOCUS, true);
+    }
+  },
+};
+
+var selectPlot = {
+
+  over: function (select, control, d) {
+    var plot = d3.select(control.node().parentNode);
+    if (plot.classed(C_SELECTION)) {
+      plot.classed(C_FOCUS_SELECTION, true).raise();
+    } else {
+      plot.classed(C_FOCUS, true).raise();
+    }
+  },
+
+  out: function (select, control, d) {
+    var plot = d3.select(control.node().parentNode);
+    plot.classed(DU.a(C_FOCUS, C_FOCUS_SELECTION), false);/*.lower();*/
+  },
+
+  click: function (select, control, d) {
+    var plot = d3.select(control.node().parentNode);
+    if (!select.isSelected(d.payload)) {
+      select.select(d.payload);
+      plot.classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), true)
+        .classed(C_FOCUS, false);
+    } else {
+      select.deselect(d.payload);
+      plot.classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), false)
+        .classed(C_FOCUS, true);
+    }
+  },
 };
