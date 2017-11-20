@@ -18,7 +18,6 @@ function table(display, data, options) {
   }
   for (var j = 0; j < data.length; j++) {
     var row = data[j];
-    console.log(row);
     tr = table.append('tr');
     for (i = 0; i < cols.length; i++) {
       tr.append('td').text(row[cols[i]]);
