@@ -1,12 +1,18 @@
 module.exports = Display;
 
 var DisplayFrame = require('./DisplayFrame.js');
+var resize = require('./resize.js');
 var lines = require('./lines.js');
 var bars = require('./bars.js');
 var tables = require('./tables.js');
 
 function Display(element, options, data) {
   DisplayFrame.call(this, element, options, data);
+
+  var self = this;
+  resize(function () {
+    self.update();
+  });
 }
 
 Display.prototype = Object.create(DisplayFrame.prototype);
