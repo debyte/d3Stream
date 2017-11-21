@@ -69,6 +69,8 @@ DisplayFrame.prototype.domainBands = function (variables, bandVariable, bands) {
     var domain = bands || null;
     if (!domain) {
       domain = U.unique(U.map(d3.merge(data), U.pick(bandVariable)));
+    } else if (typeof bands.array == 'function') {
+      domain = bands.array();
     }
     return { band: true, variable: bandVariable, domain: domain };
   });
