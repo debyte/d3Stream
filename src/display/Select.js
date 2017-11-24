@@ -6,7 +6,8 @@ var C_FOCUS = 'd3stream-focus';
 var C_SELECTION = 'd3stream-selection';
 var C_FOCUS_SELECTION = 'd3stream-focus-selection';
 
-function Select(options) {
+function Select(d3, options) {
+  this.d3 = d3;
   this.config = options;
   this.svgs = d3.select();
   this.selected = [];
@@ -75,7 +76,7 @@ var selectShape = {
 var selectPlot = {
 
   over: function (select, control, d) {
-    var plot = d3.select(control.node().parentNode);
+    var plot = select.d3.select(control.node().parentNode);
     if (plot.classed(C_SELECTION)) {
       plot.classed(C_FOCUS_SELECTION, true).raise();
     } else {
@@ -84,12 +85,12 @@ var selectPlot = {
   },
 
   out: function (select, control, d) {
-    var plot = d3.select(control.node().parentNode);
+    var plot = select.d3.select(control.node().parentNode);
     plot.classed(DU.a(C_FOCUS, C_FOCUS_SELECTION), false);/*.lower();*/
   },
 
   click: function (select, control, d) {
-    var plot = d3.select(control.node().parentNode);
+    var plot = select.d3.select(control.node().parentNode);
     if (!select.isSelected(d.payload)) {
       select.select(d.payload);
       plot.classed(DU.a(C_SELECTION, C_FOCUS_SELECTION), true)

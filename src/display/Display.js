@@ -6,11 +6,11 @@ var lines = require('./lines.js');
 var bars = require('./bars.js');
 var tables = require('./tables.js');
 
-function Display(element, options, data) {
-  DisplayFrame.call(this, element, options, data);
+function Display(d3, element, options, data) {
+  DisplayFrame.call(this, d3, element, options, data);
 
   var self = this;
-  resize(function () {
+  resize(d3, function () {
     self.update();
   });
 }

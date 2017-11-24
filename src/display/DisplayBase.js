@@ -10,12 +10,13 @@ var config = require('../config.js');
 var StreamTransform = require('../StreamTransform.js');
 var Select = require('./Select.js');
 
-function DisplayBase(element, options, data) {
+function DisplayBase(d3, element, options, data) {
   StreamTransform.call(this, data);
+  this.d3 = d3;
   this.config = U.assign(config, options);
-  this.display = createDisplay(element, this.config);
+  this.display = createDisplay(d3, element, this.config);
   this.size = { width: 0, height: 0, inWidth: 0, inHeight: 0 };
-  this.select = new Select(this.config);
+  this.select = new Select(d3, this.config);
   this.axisCache = {};
   this.charts = [];
   this.frames = [];
@@ -77,8 +78,8 @@ DisplayBase.prototype.axis = function (data, variable) {
     variable: domain.variable || variable,
     domain: domain.domain,
     scale: domain.band ?
-      d3.scaleBand().domain(domain.domain).padding(this.config.bandPadding) :
-      d3.scaleLinear().domain(domain.domain).nice(),
+      this.d3.scaleBand().domain(domain.domain).padding(this.config.bandPadding) :
+      this.d3.scaleLinear().domain(domain.domain).nice(),
     pick: domain.band ? pickBand : pickLinear,
   };
   this.axisCache[variable] = axis;
@@ -99,8 +100,8 @@ DisplayBase.prototype.domain = function (data, variable) {
   return { domain: [0, 1] };
 };
 
-function createDisplay(element, options) {
-  if (jQuery && element instanceof jQuery) {
+function createDisplay(d3, element, options) {
+  if (typeof jQuery == 'function' && element instanceof jQuery) {
     element = element[0];
   }
   element = d3.select(element);

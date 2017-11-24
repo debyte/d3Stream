@@ -1,7 +1,7 @@
-module.exports = function(callback) {
+module.exports = function(d3, callback) {
   var resizeTimeout;
 
-  $(window).on('resize', delayResize);
+  d3.select(window).on('resize', delayResize);
 
   function delayResize() {
     if (!resizeTimeout) {

@@ -12,17 +12,18 @@ function Stream(data) {
 Stream.prototype = Object.create(StreamTransform.prototype);
 Stream.prototype.constructor = Stream;
 
-Stream.prototype.load = function(url, options) {
+Stream.prototype.load = function(url, options, d3lib) {
   var self = this;
+  var d3r = d3lib || d3;
   var opt = options || {};
   if (opt.format == 'csv') {
-    d3.csv(url, onLoad);
+    d3r.csv(url, onLoad);
   } else if (opt.format == 'tsv') {
-    d3.tsv(url, onLoad);
+    d3r.tsv(url, onLoad);
   } else if (opt.format == 'xml') {
-    d3.xml(url, onLoad);
+    d3r.xml(url, onLoad);
   } else {
-    d3.json(url, onLoad);
+    d3r.json(url, onLoad);
   }
   return this;
 
@@ -32,8 +33,8 @@ Stream.prototype.load = function(url, options) {
   }
 };
 
-Stream.prototype.display = function(element, options) {
-  var d = new Display(element, options, this.array());
+Stream.prototype.display = function(element, options, d3lib) {
+  var d = new Display(d3lib || d3, element, options, this.array());
   this.displays.push(d);
   return d;
 };

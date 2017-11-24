@@ -25,7 +25,7 @@ function scatterPlot(display, plot, fullData, serieIndex, options) {
   var height = display.size.inHeight;
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
   data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
   drawDots(plot, data, t, axis, display.select);
 }
@@ -35,26 +35,26 @@ function lineChart(display, plot, fullData, serieIndex, options) {
   var height = display.size.inHeight;
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
   data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
 
   var path = plot.select(DU.s(C_LINE));
   if (path.empty()) {
-    var preLiner = d3.line()
+    var preLiner = display.d3.line()
       .x(function (d) { return axis.x.pick(d); })
       .y(axis.y.scale(0));
     if (options.curveLine) {
-      preLiner.curve(d3.curveNatural);
+      preLiner.curve(display.d3.curveNatural);
     }
     path = plot.append('path')
       .attr('class', C_LINE)
       .attr('d', preLiner(data));
   }
-  var liner = d3.line()
+  var liner = display.d3.line()
     .x(function (d) { return axis.x.pick(d); })
     .y(function (d) { return axis.y.pick(d); });
   if (options.curveLine) {
-    liner.curve(d3.curveNatural);
+    liner.curve(display.d3.curveNatural);
   }
   path.transition(t).attr('d', liner(data));
 
@@ -68,7 +68,7 @@ function drawDots(plot, data, t, axis, select) {
     .attr('class', C_DOT)
     .attr('cx', function(d) { return axis.x.pick(d); })
     .attr('cy', axis.y.scale(0))
-    .attr('r', axis.z.scale(0))
+    .attr('r', axis.z.scale(axis.z.domain[0]))
     .on('mouseover', DU.event(select, 'over'))
     .on('mouseout', DU.event(select, 'out'))
     .on('click', DU.event(select, 'click'))

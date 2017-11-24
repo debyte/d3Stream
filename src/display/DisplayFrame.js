@@ -8,8 +8,8 @@ var U = require('../utility.js');
 var DU = require('./utility.js');
 var DisplayBase = require('./DisplayBase.js');
 
-function DisplayFrame(element, options, data) {
-  DisplayBase.call(this, element, options, data);
+function DisplayFrame(d3, element, options, data) {
+  DisplayBase.call(this, d3, element, options, data);
   this.domainFunction = {};
 }
 
@@ -18,9 +18,9 @@ DisplayFrame.prototype.constructor = DisplayFrame;
 
 DisplayFrame.prototype.domain = function (data, variable) {
   if (this.domainFunction[variable]) {
-    return this.domainFunction[variable](data, variable);
+    return this.domainFunction[variable](this.d3, data, variable);
   } else {
-    return domainExtent(data, variable);
+    return domainExtent(this.d3, data, variable);
   }
 };
 
@@ -31,12 +31,12 @@ DisplayFrame.prototype.setDomain = function (variables, domainFunction) {
   return this;
 };
 
-function domainExtent(data, variable) {
+function domainExtent(d3, data, variable) {
   return { domain: d3.extent(d3.merge(data), U.pick(variable)) };
 }
 
 DisplayFrame.prototype.domainManual = function (variables, range) {
-  return this.setDomain(variables, function (data, variable) {
+  return this.setDomain(variables, function (d3, data, variable) {
     return { domain: range };
   });
 };
@@ -45,14 +45,14 @@ DisplayFrame.prototype.domainPad = function (variables, padding) {
   if (!Array.isArray(padding)) {
     padding = [padding, padding];
   }
-  return this.setDomain(variables, function (data, variable) {
-    var extent = domainExtent(data, variable).domain;
+  return this.setDomain(variables, function (d3, data, variable) {
+    var extent = domainExtent(d3, data, variable).domain;
     return { domain: [ extent[0] - padding[0], extent[1] + padding[1] ]};
   });
 };
 
 DisplayFrame.prototype.domainIQR = function (variables) {
-  return this.setDomain(variables, function (data, variable) {
+  return this.setDomain(variables, function (d3, data, variable) {
     var sorted = U.map(d3.merge(data), U.pick(variable)).sort();
     var q1 = sorted[Math.floor(0.25 * sorted.length)];
     var q3 = sorted[Math.floor(0.75 * sorted.length)];
@@ -65,7 +65,7 @@ DisplayFrame.prototype.domainIQR = function (variables) {
 };
 
 DisplayFrame.prototype.domainBands = function (variables, bandVariable, bands) {
-  return this.setDomain(variables, function (data, variable) {
+  return this.setDomain(variables, function (d3, data, variable) {
     var domain = bands || null;
     if (!domain) {
       domain = U.unique(U.map(d3.merge(data), U.pick(bandVariable)));
@@ -93,26 +93,26 @@ DisplayFrame.prototype.labels = function (labels) {
 function makeAxisBottom(display, data, options) {
   var scale = display.axis(data, options.variable).scale;
   display.display.selectAll('svg').each(function() {
-    var svg = d3.select(this);
+    var svg = display.d3.select(this);
     var axis = svg.select(DU.s(C_AXIS_X));
     if (axis.empty()) {
       axis = svg.append('g').attr('class', C_AXIS_X);
     }
     axis.attr('transform', DU.translateMargins(options, 0, display.size.inHeight))
-      .call(d3.axisBottom(scale));
+      .call(display.d3.axisBottom(scale));
   });
 }
 
 function makeAxisLeft(display, data, options) {
   var scale = display.axis(data, options.variable).scale;
   display.display.selectAll('svg').each(function() {
-    var svg = d3.select(this);
+    var svg = display.d3.select(this);
     var axis = svg.select(DU.s(C_AXIS_Y));
     if (axis.empty()) {
       axis = svg.append('g').attr('class', C_AXIS_Y);
     }
     axis.attr('transform', DU.translateMargins(options))
-      .call(d3.axisLeft(scale));
+      .call(display.d3.axisLeft(scale));
   });
 }
 

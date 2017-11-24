@@ -1,2 +1,7 @@
-/* Blatantly write over global d3Stream. */
-window.d3Stream = require('./Stream.js');
+if (typeof define == 'function' && define.amd) {
+  define([], function () {
+    return require('./Stream.js');
+  });
+} else {
+  window.d3Stream = require('./Stream.js');
+}

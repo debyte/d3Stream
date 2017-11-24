@@ -18,13 +18,13 @@ module.exports = {
     return U.filter(arguments, U.isNonEmpty).join(' ');
   },
 
-  transition: function (options) {
+  transition: function (d3, options) {
     return d3.transition().duration(options.transitionDuration);
   },
 
   event: function (select, type) {
     return function (d, i) {
-      select.event(type, d3.select(this), d, i);
+      select.event(type, select.d3.select(this), d, i);
     };
   },
 

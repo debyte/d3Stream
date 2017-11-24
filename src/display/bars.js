@@ -40,7 +40,7 @@ function barChart(display, plot, fullData, serieIndex, options) {
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
 
   var bars = plot.selectAll(DU.s(C_BAR)).data(data);
   bars.enter()
@@ -68,7 +68,7 @@ function barChartDownwards(display, plot, fullData, serieIndex, options) {
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
   axis.y.scale.rangeRound([0, height]);
 
   var bars = plot.selectAll(DU.s(C_BAR)).data(data);
@@ -97,7 +97,7 @@ function stackedBarChart(display, plot, fullData, serieIndex, options) {
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
 
   data = U.reduce(
     options.reverseStack ? data.reverse() : data,
@@ -109,7 +109,7 @@ function stackedBarChart(display, plot, fullData, serieIndex, options) {
     },
     []
   );
-  axis.y.domain = [0, d3.max(data, function(d) { return d.sy[1]; })];
+  axis.y.domain = [0, display.d3.max(data, function(d) { return d.sy[1]; })];
   axis.y.scale.domain(axis.y.domain);
   var groupVar = options.groupVariable || 'group';
 
@@ -139,10 +139,10 @@ function groupedBarChart(display, plot, fullData, serieIndex, options) {
   var axis = getAxis(display, fullData, width, height, options);
   var data = fullData[serieIndex];
   var bw = getBarWidth(width, axis.x.scale, data.length, options);
-  var t = DU.transition(options);
+  var t = DU.transition(display.d3, options);
 
   var groupVar = options.groupVariable || 'group';
-  var g = d3.scaleBand()
+  var g = display.d3.scaleBand()
     .domain(U.map(data, U.pick(groupVar)))
     .rangeRound([0, bw[0]]);
   var gw = g.bandwidth();
