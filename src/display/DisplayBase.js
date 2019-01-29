@@ -17,7 +17,6 @@ function DisplayBase(d3, element, options, data) {
   this.display = createDisplay(d3, element, this.config);
   this.size = { width: 0, height: 0, inWidth: 0, inHeight: 0 };
   this.select = new Select(d3, this.config);
-  this.axisCache = {};
   this.charts = [];
   this.frames = [];
 }
@@ -31,9 +30,8 @@ DisplayBase.prototype.update = function (data) {
   }
   this.size = getSize(this.display, this.config);
   this.select.clear();
-  this.axisCache = {};
 
-  var transformedData = this.array();
+  var transformedData = this.unstream() || [];
   if (transformedData.length > 0 && !Array.isArray(transformedData[0])) {
     transformedData = [transformedData];
   }
@@ -59,30 +57,25 @@ DisplayBase.prototype.update = function (data) {
 
 DisplayBase.prototype.addChart = function (chartFunction, options) {
   this.charts.push([chartFunction, U.assign(this.config, options)]);
-  this.update();
   return this;
 };
 
 DisplayBase.prototype.addFrame = function (frameFunction, options) {
   this.frames.push([frameFunction, U.assign(this.config, options)]);
-  this.update();
   return this;
 };
 
 DisplayBase.prototype.axis = function (data, variable) {
-  if (this.axisCache[variable]) {
-    return this.axisCache[variable];
-  }
   var domain = this.domain(data, variable);
   var axis = {
     variable: domain.variable || variable,
     domain: domain.domain,
     scale: domain.band ?
-      this.d3.scaleBand().domain(domain.domain).padding(this.config.bandPadding) :
+      this.d3.scaleBand().domain(U.unstream(domain.domain)).padding(this.config.bandPadding) :
       this.d3.scaleLinear().domain(domain.domain).nice(),
     pick: domain.band ? pickBand : pickLinear,
+    config: domain.config
   };
-  this.axisCache[variable] = axis;
   return axis;
 
   function pickBand(d, w) {

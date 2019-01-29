@@ -34,6 +34,18 @@ function getBarWidth(width, scale, count, options) {
   }
 }
 
+function getBarFill(axis, d) {
+  var g = axis.config;
+  if (g) {
+    var v = d[axis.variable];
+    var i = g[v];
+    if (i) {
+      return i.color;
+    }
+  }
+  return undefined;
+}
+
 function barChart(display, plot, fullData, serieIndex, options) {
   var width = display.size.inWidth;
   var height = display.size.inHeight;
@@ -58,7 +70,8 @@ function barChart(display, plot, fullData, serieIndex, options) {
     .attr('x', function (d) { return axis.x.pick(d, bw[1]); })
     .attr('y', function (d) { return axis.y.pick(d); })
     .attr('width', bw[0])
-    .attr('height', function (d) { return height - axis.y.pick(d); });
+    .attr('height', function (d) { return height - axis.y.pick(d); })
+    .style('fill', function (d) { return getBarFill(axis.x, d) });
   bars.exit().remove();
 }
 

@@ -66,13 +66,17 @@ DisplayFrame.prototype.domainIQR = function (variables) {
 
 DisplayFrame.prototype.domainBands = function (variables, bandVariable, bands) {
   return this.setDomain(variables, function (d3, data, variable) {
-    var domain = bands || null;
-    if (!domain) {
-      domain = U.unique(U.map(d3.merge(data), U.pick(bandVariable)));
-    } else if (typeof bands.array == 'function') {
-      domain = bands.array();
+    bands = U.unstream(bands);
+    var def = { band: true, variable: bandVariable };
+    if (bands instanceof Array) {
+      def.domain = bands;
+    } else {
+      def.domain = U.unique(U.map(d3.merge(data), U.pick(bandVariable)));
+      if (bands instanceof Object) {
+        def.config = bands;
+      }
     }
-    return { band: true, variable: bandVariable, domain: domain };
+    return def;
   });
 };
 
@@ -91,43 +95,58 @@ DisplayFrame.prototype.labels = function (labels) {
 };
 
 function makeAxisBottom(display, data, options) {
-  var scale = display.axis(data, options.variable).scale;
+  var axis = display.axis(data, options.variable);
   display.display.selectAll('svg').each(function() {
     var svg = display.d3.select(this);
-    var axis = svg.select(DU.s(C_AXIS_X));
-    if (axis.empty()) {
-      axis = svg.append('g').attr('class', C_AXIS_X);
+    var g = svg.select(DU.s(C_AXIS_X));
+    if (!g.empty()) {
+      g.remove();
     }
-    axis.attr('transform', DU.translateMargins(options, 0, display.size.inHeight))
-      .call(display.d3.axisBottom(scale));
+    g = svg.append('g').attr('class', C_AXIS_X);
+    var d3axis = display.d3.axisBottom(axis.scale.range([0, display.size.inWidth]));
+    axisConfig(axis, d3axis);
+    g.attr('transform', DU.translateMargins(options, 0, display.size.inHeight))
+      .call(d3axis);
   });
 }
 
 function makeAxisLeft(display, data, options) {
-  var scale = display.axis(data, options.variable).scale;
+  var axis = display.axis(data, options.variable);
   display.display.selectAll('svg').each(function() {
     var svg = display.d3.select(this);
-    var axis = svg.select(DU.s(C_AXIS_Y));
-    if (axis.empty()) {
-      axis = svg.append('g').attr('class', C_AXIS_Y);
+    var g = svg.select(DU.s(C_AXIS_Y));
+    if (!g.empty()) {
+      g.remove();
     }
-    axis.attr('transform', DU.translateMargins(options))
-      .call(display.d3.axisLeft(scale));
+    g = svg.append('g').attr('class', C_AXIS_Y);
+    var d3axis = display.d3.axisLeft(axis.scale.range([display.size.inHeight, 0]));
+    axisConfig(axis, d3axis);
+    g.attr('transform', DU.translateMargins(options))
+      .call(d3axis);
   });
+}
+
+function axisConfig(axis, d3axis) {
+  if (axis.config) {
+    d3axis.tickFormat(function (x) {
+      var c = axis.config[x] || {};
+      return c.label || x;
+    });
+  }
 }
 
 function makeLabels(display, data, options) {
   if (data.length == 0) return;
-  var labels = display.display.select(DU.s(C_LABELS));
-  if (labels.empty()) {
-    labels = display.display.append('div').attr('class', C_LABELS);
+  var div = display.display.select(DU.s(C_LABELS));
+  if (div.empty()) {
+    div = display.display.append('div').attr('class', C_LABELS);
   } else {
-    labels.selectAll('span').remove();
+    div.selectAll('span').remove();
   }
   for (var i = 0; i < options.labels.length; i++) {
-    labels.append('span')
+    div.append('span')
       .attr('class', 'label-dot d3stream-group-' + i);
-    labels.append('span')
+    div.append('span')
       .html(options.labels[i]);
   }
 }

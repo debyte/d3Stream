@@ -38,7 +38,7 @@ Select.prototype.deselect = function (d) {
 Select.prototype.event = function (type, control, d, i) {
   if (this.config.selectPlot) {
     selectPlot[type](this, control, d);
-  } else {
+  } else if (!this.config.selectNone) {
     selectShape[type](this, control, d);
   }
   if (this.config.select && this.config.select[type]) {

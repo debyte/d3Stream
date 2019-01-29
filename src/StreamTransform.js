@@ -31,40 +31,55 @@ StreamTransform.prototype.filter = function (callback) {
 
 StreamTransform.prototype.navigate = function (dotPath) {
   return this.addTransformation(function (data) {
-    return U.navigate(data[0], dotPath);
+    return U.navigate(data, dotPath);
   });
 };
 
 StreamTransform.prototype.cross = function (other) {
   return this.addTransformation(function (data) {
-    return U.cross(data, optionalStream(other));
+    return U.cross(data, U.unstream(other));
   });
 };
 
 StreamTransform.prototype.repeat = function (other) {
   return this.addTransformation(function (data) {
-    return U.repeat(data, optionalStream(other));
+    return U.repeat(data, U.unstream(other));
   });
 };
 
+StreamTransform.prototype.frequencies = function (groupkey, countkey) {
+  return this.addTransformation(function (data) {
+    return U.frequencies(data, groupkey, countkey);
+  });
+}
+
 StreamTransform.prototype.group = function (conditions) {
   return this.addTransformation(function (data) {
-    return U.group(data, optionalStream(conditions));
+    return U.group(data, U.unstream(conditions));
   });
 };
 
 StreamTransform.prototype.cumulate = function (parameters) {
   return this.addTransformation(function (data) {
-    return U.cumulate(data, optionalStream(parameters));
+    return U.cumulate(data, U.unstream(parameters));
   });
 };
 
 StreamTransform.prototype.mapAsStreams = function (callback) {
   return this.addTransformation(function (data) {
     return U.map(data, function (d, i) {
-      var s = callback(new StreamTransform(d), i);
-      return typeof s.array == 'function' ? s.array() : s;
+      return U.unstream(callback(new StreamTransform(d), i));
     });
+  });
+};
+
+StreamTransform.prototype.mapToObject = function (callback) {
+  return this.addTransformation(function (data) {
+    return U.reduce(data, function (out, d, i) {
+      var e = callback(d, i);
+      out[e[0]] = e[1];
+      return out;
+    }, {});
   });
 };
 
@@ -73,10 +88,3 @@ StreamTransform.prototype.keys = function () {
     return data.length > 0 ? U.keys(data[0]) : [];
   });
 };
-
-function optionalStream(input) {
-  if (typeof input.array == 'function') {
-    return input.array();
-  }
-  return input;
-}

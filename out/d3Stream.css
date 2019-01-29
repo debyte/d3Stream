@@ -4,11 +4,9 @@
   stroke-width: 1;
 }
 .d3stream-dot {
-  cursor: pointer;
   fill: #212529;
 }
 .d3stream-bar {
-  cursor: pointer;
   fill: white;
   shape-rendering: crispEdges;
 }
@@ -27,6 +25,7 @@
 
 circle.d3stream-focus, rect.d3stream-focus,
 .d3stream-focus .d3stream-dot {
+  cursor: pointer;
   fill: #337ab7;
 }
 circle.d3stream-selection, rect.d3stream-selection,

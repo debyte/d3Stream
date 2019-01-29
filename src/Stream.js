@@ -14,34 +14,40 @@ Stream.prototype.constructor = Stream;
 
 Stream.prototype.load = function(url, options, d3lib) {
   var self = this;
-  var d3r = d3lib || d3;
   var opt = options || {};
-  if (opt.format == 'csv') {
-    d3r.csv(url, onLoad);
-  } else if (opt.format == 'tsv') {
-    d3r.tsv(url, onLoad);
-  } else if (opt.format == 'xml') {
-    d3r.xml(url, onLoad);
-  } else {
-    d3r.json(url, onLoad);
-  }
+  var d3r = d3lib || d3;
+  loadAsPromise(url).then(function(data) {
+    self.update(data, opt);
+  });
   return this;
 
-  function onLoad(error, data) {
-    if (error) throw error;
-    self.update([].concat(data), options);
+  function loadAsPromise(url) {
+    if (opt.format == 'csv') {
+      return d3r.csv(url);
+    } else if (opt.format == 'tsv') {
+      return d3r.tsv(url);
+    } else if (opt.format == 'xml') {
+      return d3r.xml(url);
+    }
+    return d3r.json(url);
   }
 };
 
+Stream.prototype.branch = function() {
+  var b = new Stream(this.unstream());
+  this.displays.push(b);
+  return b;
+};
+
 Stream.prototype.display = function(element, options, d3lib) {
-  var d = new Display(d3lib || d3, element, options, this.array());
+  var d = new Display(d3lib || d3, element, options, this.unstream());
   this.displays.push(d);
   return d;
 };
 
 Stream.prototype.update = function(data, options) {
   var opt = options || {};
-  if (data) {
+  if (data !== undefined) {
     if (opt.append) {
       this.data = this.data.concat(data);
     } else if (opt.prepend) {
@@ -50,8 +56,8 @@ Stream.prototype.update = function(data, options) {
       this.data = data;
     }
   }
+  var transformedData = this.unstream();
   if (this.displays.length > 0) {
-    var transformedData = this.array();
     for (var i = 0; i < this.displays.length; i++) {
       this.displays[i].update(transformedData);
     }

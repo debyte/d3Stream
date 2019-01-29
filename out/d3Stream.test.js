@@ -3,6 +3,7 @@ module.exports = {
   map: map,
   filter: filter,
   reduce: reduce,
+  isStream: isStream,
   isIn: isIn,
   containedIn: containedIn,
   removeFrom: removeFrom,
@@ -30,59 +31,77 @@ module.exports = {
     list.splice(0, list.length);
   },
 
+  unstream: function (any) {
+    return isStream(any) ? any.unstream() : any;
+  },
+
   pick: function (key) {
     return function (obj) {
-      return obj[key];
+      return obj !== undefined ? obj[key] : undefined;
     };
   },
 
   splitEach: function (list, sep) {
-    return reduce(list, function (out, val) {
+    return reduce(list || [], function (out, val) {
       return out.concat(val.split(sep));
     }, []);
   },
 
   countEach: function (vals) {
-    return reduce(vals, function (out, val) {
+    return reduce(vals || [], function (out, val) {
       out[val] = (out[val] || 0) + 1;
       return out;
     }, {});
   },
 
   navigate: function (data, dotPath) {
-    return [].concat(reduce(dotPath.split('.'), function (out, k) {
-      return out[k];
-    }, data));
+    return reduce(dotPath.split('.'), function (out, k) {
+      return out !== undefined ? out[k] : undefined;
+    }, data);
   },
 
   repeat: function (data, other) {
-    return map(other, function (z) {
+    return map(other || [], function (z) {
       return [data, z];
     });
   },
 
   cross: function (data, other) {
-    return map(data, function (d) {
-      return map(other, function (z) {
+    return map(data || [], function (d) {
+      return map(other || [], function (z) {
         return [d, z];
       });
     });
   },
 
   unique: function (data) {
-    return reduce(data, function(out, d) {
+    return reduce(data || [], function(out, d) {
       if (!isIn(d, out)) out.push(d);
       return out;
     }, []);
   },
 
+  frequencies: function (data, groupkey, countkey) {
+    var counts = reduce(data || [], function(out, d) {
+      var v = d[groupkey];
+      if (v !== undefined) {
+        out[v] = (out[v] || 0) + (countkey === undefined ? 1 : d[countkey] || 0);
+      }
+      return out;
+    }, {});
+    return reduce(keys(counts), function(out, v) {
+      out.push({ 'value': v, 'count': counts[v] });
+      return out;
+    }, []);
+  },
+
   group: function (data, conditions) {
-    var groups = reduce(conditions, function (out) {
+    var groups = reduce(conditions || [], function (out) {
       out.push([]);
       return out;
     }, []);
-    return reduce(data, function (out, d) {
-      for (var i = 0; i < conditions.length; i++) {
+    return reduce(data || [], function (out, d) {
+      for (var i = 0; i < out.length; i++) {
         if (conditions[i](d)) {
           out[i].push(d);
           return out;
@@ -93,8 +112,8 @@ module.exports = {
   },
 
   cumulate: function(data, parameters) {
-    var keys = [].concat(parameters);
-    return reduce(data, function (out, d) {
+    var keys = [].concat(parameters || []);
+    return reduce(data || [], function (out, d) {
       if (out.length > 0) {
         for (var i = 0; i < keys.length; i++) {
           var key = keys[i];
@@ -137,8 +156,12 @@ function reduce(data, callback, initial) {
   return out;
 }
 
+function isStream(any) {
+  return any !== undefined && typeof any.unstream == 'function';
+}
+
 function isIn(val, list) {
-  return list.indexOf(val) >= 0;
+  return (list || []).indexOf(val) >= 0;
 }
 
 function removeFrom(val, list) {
