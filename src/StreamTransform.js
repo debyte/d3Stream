@@ -1,6 +1,7 @@
 module.exports = StreamTransform;
 
 var U = require('./utility.js');
+var C = require('./calculation.js');
 var StreamBase = require('./StreamBase.js');
 
 function StreamTransform(data) {
@@ -19,13 +20,33 @@ StreamTransform.prototype.consoleLog = function () {
 
 StreamTransform.prototype.map = function (callback) {
   return this.addTransformation(function (data) {
-    return U.map(data, callback);
+    return data.map(callback);
+  });
+};
+
+StreamTransform.prototype.mapAsStreams = function (callback) {
+  return this.addTransformation(function (data) {
+    return data.map(function (d, i) {
+      return U.unstream(callback(new StreamTransform(d), i));
+    });
   });
 };
 
 StreamTransform.prototype.filter = function (callback) {
   return this.addTransformation(function (data) {
-    return U.filter(data, callback);
+    return data.filter(callback);
+  });
+};
+
+StreamTransform.prototype.keys = function () {
+  return this.addTransformation(function (data) {
+    return data.length > 0 ? Object.keys(data[0]) : [];
+  });
+};
+
+StreamTransform.prototype.mapToObject = function (callback) {
+  return this.addTransformation(function (data) {
+    return U.mapToObject(data, callback);
   });
 };
 
@@ -47,17 +68,17 @@ StreamTransform.prototype.repeat = function (other) {
   });
 };
 
-StreamTransform.prototype.frequencies = function (groupkey, countkey) {
-  return this.addTransformation(function (data) {
-    return U.frequencies(data, groupkey, countkey);
-  });
-}
-
 StreamTransform.prototype.group = function (conditions) {
   return this.addTransformation(function (data) {
     return U.group(data, U.unstream(conditions));
   });
 };
+
+StreamTransform.prototype.unique = function () {
+  return this.addTransformation(function (data) {
+    return U.unique(data);
+  });
+}
 
 StreamTransform.prototype.cumulate = function (parameters) {
   return this.addTransformation(function (data) {
@@ -65,26 +86,8 @@ StreamTransform.prototype.cumulate = function (parameters) {
   });
 };
 
-StreamTransform.prototype.mapAsStreams = function (callback) {
+StreamTransform.prototype.frequencies = function (groupkey, countkey) {
   return this.addTransformation(function (data) {
-    return U.map(data, function (d, i) {
-      return U.unstream(callback(new StreamTransform(d), i));
-    });
-  });
-};
-
-StreamTransform.prototype.mapToObject = function (callback) {
-  return this.addTransformation(function (data) {
-    return U.reduce(data, function (out, d, i) {
-      var e = callback(d, i);
-      out[e[0]] = e[1];
-      return out;
-    }, {});
-  });
-};
-
-StreamTransform.prototype.keys = function () {
-  return this.addTransformation(function (data) {
-    return data.length > 0 ? U.keys(data[0]) : [];
+    return C.frequencies(data, groupkey, countkey);
   });
 };

@@ -1,12 +1,10 @@
-var U = require('../src/utility.js');
-
-var tests = U.assign(
+var tests = Object.assign(
+  {},
   require('./base.js'),
   require('./transform.js'),
   require('./stream.js')
 );
 
-var keys = U.keys(tests);
-for (var i = 0; i < keys.length; i++) {
-  QUnit.test(keys[i], tests[keys[i]]);
-}
+Object.keys(tests).forEach(function (k) {
+  QUnit.test(k, tests[k]);
+});

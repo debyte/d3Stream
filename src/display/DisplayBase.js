@@ -13,7 +13,7 @@ var Select = require('./Select.js');
 function DisplayBase(d3, element, options, data) {
   StreamTransform.call(this, data);
   this.d3 = d3;
-  this.config = U.assign(config, options);
+  this.config = Object.assign({}, config, options);
   this.display = createDisplay(d3, element, this.config);
   this.size = { width: 0, height: 0, inWidth: 0, inHeight: 0 };
   this.select = new Select(d3, this.config);
@@ -32,23 +32,24 @@ DisplayBase.prototype.update = function (data) {
   this.select.clear();
 
   var transformedData = this.unstream() || [];
-  if (transformedData.length > 0 && !Array.isArray(transformedData[0])) {
+  if (transformedData.length == 0 || !Array.isArray(transformedData[0])) {
     transformedData = [transformedData];
   }
+  var axis = DU.axis(this, transformedData, this.config);
+  var self = this;
 
-  for (i = 0; i < this.charts.length; i++) {
-    for (var r = 0; r < transformedData.length; r++) {
-        var plot = getPlot(this.display, this.select, this.size, this.config, i, r);
-        var chart = this.charts[i];
-        chart[0](this, plot, transformedData, r, chart[1]);
-    }
-    while (removePlot(this.display, this.config, i, r)) r += 1;
-  }
+  this.charts.forEach(function (chart, i) {
+    var plots = transformedData.map(function (d, r) {
+      return getPlot(self.display, self.select, self.size, self.config, i, r);
+    });
+    chart[0](self, plots, axis, transformedData, chart[1]);
+    var r = transformedData.length;
+    while (removePlot(self.display, self.config, i, r)) r += 1;
+  });
 
-  for (i = 0; i < this.frames.length; i++) {
-    var frame = this.frames[i];
-    frame[0](this, transformedData, frame[1]);
-  }
+  this.frames.forEach(function (frame, i) {
+    frame[0](self, axis, transformedData, frame[1]);
+  });
 
   if (this.config.update) {
     this.config.update(this, transformedData);
@@ -56,12 +57,12 @@ DisplayBase.prototype.update = function (data) {
 };
 
 DisplayBase.prototype.addChart = function (chartFunction, options) {
-  this.charts.push([chartFunction, U.assign(this.config, options)]);
+  this.charts.push([chartFunction, Object.assign({}, this.config, options)]);
   return this;
 };
 
 DisplayBase.prototype.addFrame = function (frameFunction, options) {
-  this.frames.push([frameFunction, U.assign(this.config, options)]);
+  this.frames.push([frameFunction, Object.assign({}, this.config, options)]);
   return this;
 };
 
@@ -69,23 +70,28 @@ DisplayBase.prototype.axis = function (data, variable) {
   var domain = this.domain(data, variable);
   var axis = {
     variable: domain.variable || variable,
+    baseVariable: '_b' + (domain.variable || variable),
+    missing: domain.missing,
+    config: domain.config,
     domain: domain.domain,
     scale: domain.band ?
       this.d3.scaleBand().domain(U.unstream(domain.domain)).padding(this.config.bandPadding) :
       this.d3.scaleLinear().domain(domain.domain).nice(),
-    pick: domain.band ? pickBand : pickLinear,
-    config: domain.config
+    pick: function (d, w) { return picker(this.scale, d, this.variable, w); },
+    pickBase: function (d, w) { return picker(this.scale, d, this.baseVariable, w, 0); },
+    pickDistance: function (d) { return Math.abs(this.pickBase(d) - this.pick(d)); },
+    pickValue: function (d) { return Math.abs(d[this.variable] - (d[this.baseVariable] || 0)); },
+    pickZero: function () { return this.scale(0); },
+    pickMin: function () { return this.scale(this.domain[0]); }
   };
   return axis;
 
-  function pickBand(d, w) {
-    if (w !== undefined) return this.scale(d[this.variable]);
-    return this.scale(d[this.variable]) + this.scale.bandwidth() / 2;
-  }
-
-  function pickLinear(d, w) {
-    if (w) return this.scale(d[this.variable]) - w;
-    return this.scale(d[this.variable]);
+  function picker(scale, d, k, w, a) {
+    var v = d[k] !== undefined ? d[k] : a;
+    if (v === undefined) return v;
+    return scale(v) + (scale.bandwidth ?
+      (w !== undefined ? 0 : scale.bandwidth() / 2) :
+      (w !== undefined ? -w : 0));
   }
 };
 

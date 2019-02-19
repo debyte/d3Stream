@@ -1,7 +1,5 @@
 module.exports = StreamBase;
 
-var U = require('./utility.js');
-
 function StreamBase(data) {
   this.data = data;
   this.transformations = [];
@@ -19,11 +17,7 @@ StreamBase.prototype.reset = function () {
 
 StreamBase.prototype.unstream = function () {
   if (this.data === undefined || !this.transformations) return this.data;
-  return U.reduce(
-    this.transformations,
-    function(data, t) { return t(data); },
-    this.data
-  );
+  return this.transformations.reduce(function(data, t) { return t(data); }, this.data);
 };
 
 StreamBase.prototype.update = function () {

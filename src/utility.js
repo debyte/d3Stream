@@ -1,21 +1,23 @@
 module.exports = {
-  map: map,
-  filter: filter,
-  reduce: reduce,
-  isStream: isStream,
-  isIn: isIn,
-  containedIn: containedIn,
-  removeFrom: removeFrom,
-  keys: keys,
-  values: values,
-  assign: assign,
+
+  isStream: function (any) {
+    return any !== undefined && typeof any.unstream == 'function';
+  },
+
+  unstream: function (any) {
+    return this.isStream(any) ? any.unstream() : any;
+  },
 
   consoleLog: function (d) {
     console.log(d);
   },
 
-  toNumber: function (val) {
-    return parseFloat(val);
+  argumentsArray: function (args) {
+    return Array.prototype.slice.call(args);
+  },
+
+  get: function get(obj, key) {
+    return obj !== undefined ? obj[key] : undefined;
   },
 
   isNotNaN: function (val) {
@@ -26,12 +28,12 @@ module.exports = {
     return val && (val.trim === undefined || val.trim() !== '');
   },
 
-  empty: function (list) {
-    list.splice(0, list.length);
+  remove: function (list, val) {
+    return list.splice(list.indexOf(val), 1);
   },
 
-  unstream: function (any) {
-    return isStream(any) ? any.unstream() : any;
+  clear: function (list) {
+    list.splice(0, list.length);
   },
 
   pick: function (key) {
@@ -40,84 +42,78 @@ module.exports = {
     };
   },
 
+  asList: function (obj) {
+    return [].concat(obj !== undefined ? obj : []);
+  },
+
   splitEach: function (list, sep) {
-    return reduce(list || [], function (out, val) {
+    return this.asList(list).reduce(function (out, val) {
       return out.concat(val.split(sep));
     }, []);
   },
 
+  mapToObject: function (list, callback) {
+    return this.asList(list).reduce(function (out, d, i) {
+      var e = callback(d, i, list);
+      out[e[0]] = e[1];
+      return out;
+    }, {});
+  },
+
   countEach: function (vals) {
-    return reduce(vals || [], function (out, val) {
+    return this.asList(vals).reduce(function (out, val) {
       out[val] = (out[val] || 0) + 1;
       return out;
     }, {});
   },
 
   navigate: function (data, dotPath) {
-    return reduce(dotPath.split('.'), function (out, k) {
+    return dotPath.split('.').reduce(function (out, k) {
       return out !== undefined ? out[k] : undefined;
     }, data);
   },
 
+  unique: function (data) {
+    return this.asList(data).reduce(function (out, d) {
+      if (!out.includes(d)) out.push(d);
+      return out;
+    }, []);
+  },
+
   repeat: function (data, other) {
-    return map(other || [], function (z) {
+    return this.asList(data).map(function (z) {
       return [data, z];
     });
   },
 
   cross: function (data, other) {
-    return map(data || [], function (d) {
-      return map(other || [], function (z) {
+    return this.asList(data).map(function (d) {
+      return this.asList(other).map(function (z) {
         return [d, z];
       });
     });
   },
 
-  unique: function (data) {
-    return reduce(data || [], function(out, d) {
-      if (!isIn(d, out)) out.push(d);
-      return out;
-    }, []);
-  },
-
-  frequencies: function (data, groupkey, countkey) {
-    var counts = reduce(data || [], function(out, d) {
-      var v = d[groupkey];
-      if (v !== undefined) {
-        out[v] = (out[v] || 0) + (countkey === undefined ? 1 : d[countkey] || 0);
-      }
-      return out;
-    }, {});
-    return reduce(keys(counts), function(out, v) {
-      out.push({ 'value': v, 'count': counts[v] });
-      return out;
-    }, []);
-  },
-
   group: function (data, conditions) {
-    var groups = reduce(conditions || [], function (out) {
-      out.push([]);
-      return out;
-    }, []);
-    return reduce(data || [], function (out, d) {
-      for (var i = 0; i < out.length; i++) {
+    var groups = this.asList(conditions).map(function (c) { return []; });
+    this.asList(data).forEach(function (d) {
+      for (var i = 0; i < groups.length; i++) {
         if (conditions[i](d)) {
-          out[i].push(d);
-          return out;
+          groups[i].push(d);
+          return;
         }
       }
-      return out;
-    }, groups);
+    });
+    return groups;
   },
 
   cumulate: function(data, parameters) {
-    var keys = [].concat(parameters || []);
-    return reduce(data || [], function (out, d) {
+    var keys = this.asList(parameters);
+    return this.asList(data).reduce(function (out, d) {
       if (out.length > 0) {
-        for (var i = 0; i < keys.length; i++) {
-          var key = keys[i];
-          d[key] = out[out.length - 1][key] + (d[key] || 0);
-        }
+        keys.forEach(function (k) {
+          d[k] = out[out.length - 1][k] + (d[k] || 0);
+        });
       }
       out.push(d);
       return out;
@@ -126,79 +122,79 @@ module.exports = {
 
 };
 
-function map(data, callback) {
-  if (typeof data.map == 'function') return data.map(callback);
-  var out = [];
-  for (var i = 0; i < data.length; i++) {
-    out.push(callback(data[i], i, data));
-  }
-  return out;
-}
+/* Good enough polyfills */
 
-function filter(data, callback) {
-  if (typeof data.filter == 'function') return data.filter(callback);
-  var out = [];
-  for (var i = 0; i < data.length; i++) {
-    if (callback(data[i], i, data)) {
-      out.push(data[i]);
+if (!Array.prototype.map) {
+  Array.prototype.map = function (callback) {
+    var out = [];
+    for (var i = 0; i < this.length; i++) {
+      out.push(callback(this[i], i, this));
     }
-  }
-  return out;
+    return out;
+  };
 }
 
-function reduce(data, callback, initial) {
-  if (typeof data.reduce == 'function') return data.reduce(callback, initial);
-  var out = initial;
-  for (var i = 0; i < data.length; i++) {
-    out = callback(out, data[i], i, data);
-  }
-  return out;
-}
-
-function isStream(any) {
-  return any !== undefined && typeof any.unstream == 'function';
-}
-
-function isIn(val, list) {
-  return (list || []).indexOf(val) >= 0;
-}
-
-function removeFrom(val, list) {
-  return list.splice(list.indexOf(val), 1);
-}
-
-function containedIn(items, list) {
-  for (var i = 0; i < items.length; i++) {
-    if (!isIn(items[i], list)) {
-      return false;
+if (!Array.prototype.filter) {
+  Array.prototype.filter = function (callback) {
+    var out = [];
+    for (var i = 0; i < this.length; i++) {
+      if (callback(this[i], i, this)) {
+        out.push(this[i]);
+      }
     }
-  }
-  return true;
+    return out;
+  };
 }
 
-function keys(obj) {
-  if (typeof Object.keys == 'function') return Object.keys(obj);
-  var keys = [];
-  for (var key in obj) {
-    if (obj.hasOwnProperty(key)) keys.push(key);
-  }
-  return keys;
+if (!Array.prototype.reduce) {
+  Array.prototype.reduce = function (callback, initial) {
+    var out = initial;
+    for (var i = 0; i < this.length; i++) {
+      out = callback(out, this[i], i, this);
+    }
+    return out;
+  };
 }
 
-function values(obj) {
-  if (typeof Object.values == 'function') return Object.values(obj);
-  var vals = [];
-  for (var key in keys(obj)) {
-    vals.push(obj[key]);
-  }
-  return vals;
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function (callback) {
+    for (var i = 0; i < this.length; i++) {
+      callback(this[i], i, this);
+    }
+  };
 }
 
-function assign() {
-  return reduce(arguments, function (merged, arg) {
-    for (var k in arg) {
-      merged[k] = arg[k];
+if (!Array.prototype.includes) {
+  Array.prototype.includes = function (val) {
+    return this.indexOf(val) >= 0;
+  };
+}
+
+if (!Object.keys) {
+  Object.keys = function (obj) {
+    var keys = [];
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) keys.push(key);
+    }
+    return keys;
+  };
+}
+
+if (!Object.values) {
+  Object.values = function (obj) {
+    return Object.keys(obj).map(function (k) { return obj[k]; });
+  };
+}
+
+if (!Object.assign) {
+  Object.assign = function () {
+    merged = arguments.length > 0 ? arguments[0] : undefined;
+    for (var i = 1; i < arguments.length; i++) {
+      var a = arguments[i];
+      Object.keys(a || {}).forEach(function (k) {
+        merged[k] = a[k];
+      });
     }
     return merged;
-  }, {});
+  };
 }

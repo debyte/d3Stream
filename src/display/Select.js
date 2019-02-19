@@ -20,11 +20,11 @@ Select.prototype.register = function (svg) {
 
 Select.prototype.clear = function () {
   this.svgs.selectAll(DU.s(C_SELECTION)).classed(C_SELECTION, false);
-  U.empty(this.selected);
+  U.clear(this.selected);
 };
 
 Select.prototype.isSelected = function (d) {
-  return U.isIn(d, this.selected);
+  return this.selected.includes(d);
 };
 
 Select.prototype.select = function (d) {
@@ -32,7 +32,7 @@ Select.prototype.select = function (d) {
 };
 
 Select.prototype.deselect = function (d) {
-  U.removeFrom(d, this.selected);
+  U.remove(this.selected, d);
 };
 
 Select.prototype.event = function (type, control, d, i) {

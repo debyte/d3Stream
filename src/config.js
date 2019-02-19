@@ -6,11 +6,27 @@ module.exports = {
   marginRight: 30,
   marginBottom: 30,
 
-  lineDotRange: [3, 10],
+  horizontalAxis: true,
+  verticalAxis: true,
+  groupLabels: false,
+  combine: true,
+  curveLine: false,
+  stepLine: false,
+  reverseStack: false,
+  chartText: false,
+
   barMargin: 0.2,
   bandPadding: 0.2,
-
-  combine: true,
-
+  textPadding: 10,
+  dotRadiusRange: [3, 10],
   transitionDuration: 500,
+  chartTextFormat: '.2f',
+  labelClasses: 'badge badge-light ml-1',
+
+  horizontalVariable: 'x',
+  verticalVariable: 'y',
+  scaleVariable: 'z',
+  labelVariable: 'label',
+  groupVariable: 'group',
+  colorVariable: 'color',
 };

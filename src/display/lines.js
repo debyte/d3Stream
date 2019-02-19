@@ -1,81 +1,121 @@
 var DU = require('./utility.js');
 
-C_LINE = 'd3stream-line';
 C_DOT = 'd3stream-dot';
+C_LINE = 'd3stream-line';
+C_AREA = 'd3stream-area';
 
 module.exports = {
   scatterPlot: scatterPlot,
   lineChart: lineChart,
+  areaChart: areaChart,
+  stackedAreaChart: stackedAreaChart
 };
 
-function getAxis(display, data, width, height, options) {
-  var axis = {
-    x: display.axis(data, options.horizontalVariable || 'x'),
-    y: display.axis(data, options.verticalVariable || 'y'),
-    z: display.axis(data, options.scaleVariable || 'z'),
-  };
-  axis.x.scale.rangeRound([0, width]);
-  axis.y.scale.rangeRound([height, 0]);
-  axis.z.scale.rangeRound(options.lineDotRange);
-  return axis;
+function scatterPlot(display, plots, axis, dataSeries, options) {
+  for (var i = 0; i < dataSeries.length; i++) {
+    drawDots(display, plots[i], axis, dataSeries[i], options);
+  }
 }
 
-function scatterPlot(display, plot, fullData, serieIndex, options) {
-  var width = display.size.inWidth;
-  var height = display.size.inHeight;
-  var axis = getAxis(display, fullData, width, height, options);
-  var data = fullData[serieIndex];
-  var t = DU.transition(display.d3, options);
-  data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
-  drawDots(plot, data, t, axis, display.select);
+function lineChart(display, plots, axis, dataSeries, options) {
+  for (var i = 0; i < dataSeries.length; i++) {
+    drawLine(display, plots[i], axis, dataSeries[i], options);
+  }
 }
 
-function lineChart(display, plot, fullData, serieIndex, options) {
-  var width = display.size.inWidth;
-  var height = display.size.inHeight;
-  var axis = getAxis(display, fullData, width, height, options);
-  var data = fullData[serieIndex];
-  var t = DU.transition(display.d3, options);
-  data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
+function areaChart(display, plots, axis, dataSeries, options) {
+  for (var i = 0; i < dataSeries.length; i++) {
+    drawArea(display, plots[i], axis, dataSeries[i], options);
+  }
+}
 
+function stackedAreaChart(display, plots, axis, dataSeries, options) {
+  var sdata = DU.stack(display.d3, dataSeries, axis, options);
+  for (var i = 0; i < sdata.length; i++) {
+    drawArea(display, plots[i], axis, sdata[i], options);
+  }
+}
+
+function getCurveFactory(d3, options) {
+  return options.curveLine ? d3.curveNatural : (options.stepLine ? d3.curveStep : d3.curveLinear);
+}
+
+function drawDots(display, plot, axis, data, options) {
+  data = DU.cutToDomain(data, axis.z.variable, axis.z.domain);
+  var trans = DU.transition(display.d3, options);
+  var formatter = DU.formatter(display.d3, options);
+  var group = DU.groupSelector(options);
+  var dots = plot.selectAll(DU.s(C_DOT)).data(data);
+  var enter = dots.enter().append('g').attr('class', C_DOT);
+  enter.append('circle')
+    .attr('cx', function(d) { return axis.x.pick(d); })
+    .attr('cy', axis.y.pickZero())
+    .attr('r', axis.z.pickMin())
+    .on('mouseover', DU.event(display.select, 'over'))
+    .on('mouseout', DU.event(display.select, 'out'))
+    .on('click', DU.event(display.select, 'click'));
+  enter.append('text')
+    .attr('x', function (d) { return DU.textPadX(options, axis.x.pick(d)); })
+    .attr('y', axis.y.pickZero());
+  var merged = dots.merge(enter);
+  merged.select('circle')
+    .transition(trans)
+    .attr('cx', function (d) { return axis.x.pick(d); })
+    .attr('cy', function (d) { return axis.y.pick(d); })
+    .attr('r', function (d) { return axis.z.pick(d) || axis.z.pickMin(); })
+    .style('fill', function (d) { return DU.fill(d, axis.x, options, group(d)); })
+  if (options.chartText) {
+    merged.select('text')
+      .transition(trans)
+      .attr('x', function (d) { return DU.textPadX(options, axis.x.pick(d)); })
+      .attr('y', function (d) { return DU.textPadY(options, axis.y.pick(d)); })
+      .text(function (d) { return DU.text(d[axis.y.variable], formatter, axis.y.pickDistance(d), options, group(d)); });
+  }
+  dots.exit().remove();
+}
+
+function drawLine(display, plot, axis, data, options) {
+  var trans = DU.transition(display.d3, options);
+  var curve = getCurveFactory(display.d3, options);
+  var group = DU.groupSelector(options);
   var path = plot.select(DU.s(C_LINE));
   if (path.empty()) {
-    var preLiner = display.d3.line()
+    var enterLiner = display.d3.line()
       .x(function (d) { return axis.x.pick(d); })
-      .y(axis.y.scale(0));
-    if (options.curveLine) {
-      preLiner.curve(display.d3.curveNatural);
-    }
+      .y(axis.y.pickZero())
+      .curve(curve);
     path = plot.append('path')
       .attr('class', C_LINE)
-      .attr('d', preLiner(data));
+      .attr('d', enterLiner(data));
   }
   var liner = display.d3.line()
     .x(function (d) { return axis.x.pick(d); })
-    .y(function (d) { return axis.y.pick(d); });
-  if (options.curveLine) {
-    liner.curve(display.d3.curveNatural);
-  }
-  path.transition(t).attr('d', liner(data));
-
-  drawDots(plot, data, t, axis, display.select);
+    .y(function (d) { return axis.y.pick(d); })
+    .curve(curve);
+  path.transition(trans).attr('d', liner(data));
 }
 
-function drawDots(plot, data, t, axis, select) {
-  var dots = plot.selectAll(DU.s(C_DOT)).data(data);
-  dots.enter()
-    .append('circle')
-    .attr('class', C_DOT)
-    .attr('cx', function(d) { return axis.x.pick(d); })
-    .attr('cy', axis.y.scale(0))
-    .attr('r', axis.z.scale(axis.z.domain[0]))
-    .on('mouseover', DU.event(select, 'over'))
-    .on('mouseout', DU.event(select, 'out'))
-    .on('click', DU.event(select, 'click'))
-  .merge(dots)
-    .transition(t)
-    .attr('cx', function (d) { return axis.x.pick(d); })
-    .attr('cy', function (d) { return axis.y.pick(d); })
-    .attr('r', function (d) { return axis.z.pick(d); });
-  dots.exit().remove();
+function drawArea(display, plot, axis, data, options) {
+  var trans = DU.transition(display.d3, options);
+  var curve = getCurveFactory(display.d3, options);
+  var group = DU.groupSelector(options);
+  var path = plot.select(DU.s(C_AREA));
+  if (path.empty()) {
+    var enterArear = display.d3.area()
+      .x(function (d) { return axis.x.pick(d); })
+      .y0(axis.y.pickZero())
+      .y1(axis.y.pickZero())
+      .curve(curve);
+    path = plot.append('path')
+      .attr('class', C_AREA)
+      .attr('d', enterArear(data));
+  }
+  var arear = display.d3.area()
+    .x(function (d) { return axis.x.pick(d); })
+    .y0(function (d) { return axis.y.pickBase(d); })
+    .y1(function (d) { return axis.y.pick(d); })
+    .curve(curve);
+  path.transition(trans)
+    .attr('d', arear(data))
+    .style('fill', DU.fill({}, {}, options, group(data[0])));
 }

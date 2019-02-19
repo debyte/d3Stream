@@ -1,3 +1,11 @@
+.d3stream-plot text {
+  stroke: none;
+  fill: currentColor;
+  font-size: 10px;
+  font-family: sans-serif;
+  text-anchor: start;
+  dominant-baseline: hanging;
+}
 .d3stream-line, .d3stream-bar {
   fill: none;
   stroke: #212529;
@@ -9,18 +17,6 @@
 .d3stream-bar {
   fill: white;
   shape-rendering: crispEdges;
-}
-.d3stream-group-0 {
-  background-color: #eeeeee;
-  fill: #eeeeee;
-}
-.d3stream-group-1 {
-  background-color: #aaaaaa;
-  fill: #aaaaaa;
-}
-.d3stream-group-2 {
-  background-color: #5cb85c;
-  fill: #5cb85c;
 }
 
 circle.d3stream-focus, rect.d3stream-focus,

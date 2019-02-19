@@ -57,24 +57,22 @@ Stream.prototype.update = function(data, options) {
     }
   }
   var transformedData = this.unstream();
-  if (this.displays.length > 0) {
-    for (var i = 0; i < this.displays.length; i++) {
-      this.displays[i].update(transformedData);
-    }
+  for (var i = 0; i < this.displays.length; i++) {
+    this.displays[i].update(transformedData);
   }
   return this;
 };
 
 Stream.prototype.contains = function (item) {
-  return U.isIn(item, this.data);
+  return this.data.includes(item);
 };
 
 Stream.prototype.containedIn = function (list) {
-  return U.containedIn(this.data, list);
+  return list.includes(this.data);
 };
 
 Stream.prototype.remove = function (item) {
-  U.removeFrom(item, this.data);
+  U.remove(this.data, item);
   this.update();
   return this;
 };

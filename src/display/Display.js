@@ -26,12 +26,16 @@ Display.prototype.lineChart = function (options) {
   return this.addChart(lines.lineChart, options);
 };
 
-Display.prototype.barChart = function (options) {
-  return this.addChart(bars.barChart, options);
+Display.prototype.areaChart = function (options) {
+  return this.addChart(lines.areaChart, options);
 };
 
-Display.prototype.barChartDownwards = function (options) {
-  return this.addChart(bars.barChartDownwards, options);
+Display.prototype.stackedAreaChart = function (options) {
+  return this.addChart(lines.stackedAreaChart, options);
+};
+
+Display.prototype.barChart = function (options) {
+  return this.addChart(bars.barChart, options);
 };
 
 Display.prototype.stackedBarChart = function (options) {
