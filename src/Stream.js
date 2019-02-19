@@ -119,3 +119,7 @@ Stream.prototype.timeFormat = function (name, sub) {
   }
   return this.d3.timeFormat('%d.%m.');
 }
+
+Stream.prototype.colorScale = function () {
+  return this.d3.scaleOrdinal(this.d3.schemePaired);
+}
