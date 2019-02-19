@@ -4,8 +4,8 @@ var U = require('./utility.js');
 var C = require('./calculation.js');
 var StreamBase = require('./StreamBase.js');
 
-function StreamTransform(data) {
-  StreamBase.call(this, data);
+function StreamTransform(data, d3lib) {
+  StreamBase.call(this, data, d3lib);
 }
 
 StreamTransform.prototype = Object.create(StreamBase.prototype);
@@ -20,21 +20,31 @@ StreamTransform.prototype.consoleLog = function () {
 
 StreamTransform.prototype.map = function (callback) {
   return this.addTransformation(function (data) {
-    return data.map(callback);
+    return U.asList(data).map(callback);
   });
 };
 
 StreamTransform.prototype.mapAsStreams = function (callback) {
   return this.addTransformation(function (data) {
-    return data.map(function (d, i) {
+    return U.asList(data).map(function (d, i) {
       return U.unstream(callback(new StreamTransform(d), i));
+    });
+  });
+};
+
+StreamTransform.prototype.mapSubArrays = function (key, callback) {
+  return this.addTransformation(function (data) {
+    return U.asList(data).map(function (d1, i1) {
+      return U.asList(d1[key]).map(function (d2, i2) {
+          return callback(d1, d2, i1, i2);
+      });
     });
   });
 };
 
 StreamTransform.prototype.filter = function (callback) {
   return this.addTransformation(function (data) {
-    return data.filter(callback);
+    return U.asList(data).filter(callback);
   });
 };
 
@@ -86,8 +96,20 @@ StreamTransform.prototype.cumulate = function (parameters) {
   });
 };
 
+StreamTransform.prototype.merge = function () {
+  return this.addTransformation(function (data) {
+    return this.d3.merge(data);
+  });
+};
+
 StreamTransform.prototype.frequencies = function (groupkey, countkey) {
   return this.addTransformation(function (data) {
     return C.frequencies(data, groupkey, countkey);
   });
 };
+
+StreamTransform.prototype.periodically = function (period, accessor, timekey) {
+  return this.addTransformation(function (data) {
+    return C.periodically(data, period, accessor, timekey || 't', this.d3);
+  });
+}

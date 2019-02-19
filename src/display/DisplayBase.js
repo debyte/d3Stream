@@ -69,14 +69,12 @@ DisplayBase.prototype.addFrame = function (frameFunction, options) {
 DisplayBase.prototype.axis = function (data, variable) {
   var domain = this.domain(data, variable);
   var axis = {
-    variable: domain.variable || variable,
-    baseVariable: '_b' + (domain.variable || variable),
+    variable: variable,
+    baseVariable: '_b' + variable,
     missing: domain.missing,
     config: domain.config,
     domain: domain.domain,
-    scale: domain.band ?
-      this.d3.scaleBand().domain(U.unstream(domain.domain)).padding(this.config.bandPadding) :
-      this.d3.scaleLinear().domain(domain.domain).nice(),
+    scale: domain.scale ? domain.scale : this.d3.scaleLinear().domain(domain.domain).nice(),
     pick: function (d, w) { return picker(this.scale, d, this.variable, w); },
     pickBase: function (d, w) { return picker(this.scale, d, this.baseVariable, w, 0); },
     pickDistance: function (d) { return Math.abs(this.pickBase(d) - this.pick(d)); },

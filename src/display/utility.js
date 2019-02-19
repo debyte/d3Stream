@@ -66,12 +66,10 @@ module.exports = {
     var ybuf = {};
     var sdata = (options.reverseStack ? dataSeries.reverse() : dataSeries).map(function (serie) {
       return  serie.map(function (d) {
-        var out = Object.assign({}, d);
         var b = ybuf[d[axis.x.variable]] || 0;
-        out[axis.y.baseVariable] = b;
-        b += d[axis.y.variable] || 0;
-        out[axis.y.variable] = b;
-        ybuf[d[axis.x.variable]] = b;
+        var n = b + d[axis.y.variable] || 0;
+        var out = Object.assign({}, d, U.obj([axis.y.baseVariable, b], [axis.y.variable, n]));
+        ybuf[d[axis.x.variable]] = n;
         return out;
       });
     });

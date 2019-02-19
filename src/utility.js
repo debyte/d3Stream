@@ -16,8 +16,19 @@ module.exports = {
     return Array.prototype.slice.call(args);
   },
 
-  get: function get(obj, key) {
+  get: function (obj, key) {
     return obj !== undefined ? obj[key] : undefined;
+  },
+
+  obj: function () {
+    return this.objl(this.argumentsArray(arguments));
+  },
+
+  objl: function (items) {
+    return this.asList(items).reduce(function (out, e) {
+      out[e[0]] = e[1];
+      return out;
+    }, {});
   },
 
   isNotNaN: function (val) {
@@ -53,11 +64,7 @@ module.exports = {
   },
 
   mapToObject: function (list, callback) {
-    return this.asList(list).reduce(function (out, d, i) {
-      var e = callback(d, i, list);
-      out[e[0]] = e[1];
-      return out;
-    }, {});
+    return this.objl(this.asList(list).map(callback));
   },
 
   countEach: function (vals) {

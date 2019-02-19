@@ -1,6 +1,7 @@
 module.exports = StreamBase;
 
-function StreamBase(data) {
+function StreamBase(data, d3lib) {
+  this.d3 = d3lib || d3;
   this.data = data;
   this.transformations = [];
 }

@@ -87,23 +87,33 @@ DisplayFrame.prototype.domainIQR = function (variables) {
   });
 };
 
-DisplayFrame.prototype.domainBands = function (variables, bandVariable, bands) {
+DisplayFrame.prototype.domainBands = function (variables, bands) {
+  var pad = this.config.bandPadding;
   return this.setDomain(variables, function (d3, data, variable) {
-    var def = { band: true, variable: bandVariable };
-    bands = U.unstream(bands);
-    if (bands instanceof Array) {
-      if (bands.length > 0 && bands[0].key !== undefined) {
-        def.domain = bands.map(function (d) { return d.key; });
-        def.config = U.mapToObject(bands, function (d) { return [d.key, d]; });
+    var def = {};
+    var vals = U.unstream(bands);
+    if (vals instanceof Array) {
+      if (vals.length > 0 && vals[0].key !== undefined) {
+        def.domain = vals.map(function (d) { return d.key; });
+        def.config = U.mapToObject(vals, function (d) { return [d.key, d]; });
       } else {
-        def.domain = bands;
+        def.domain = vals;
       }
     } else {
-      def.domain = U.unique(d3.merge(data).map(U.pick(bandVariable)));
-      if (bands instanceof Object) {
-        def.config = bands;
+      def.domain = U.unique(d3.merge(data).map(U.pick(variable)));
+      if (vals instanceof Object) {
+        def.config = vals;
       }
     }
+    def.scale = d3.scaleBand().domain(def.domain).padding(pad);
+    return def;
+  });
+};
+
+DisplayFrame.prototype.domainTime = function (variables) {
+  return this.setDomain(variables, function (d3, data, variable) {
+    var def = domainExtent(d3, data, variable);
+    def.scale = d3.scaleTime().domain(def.domain);
     return def;
   });
 };

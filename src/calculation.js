@@ -59,4 +59,17 @@ module.exports = {
     return arrayRecursion(map);
   },
 
+  periodically: function (data, interval, accessor, timekey) {
+    return U.asList(data).reduce(function (out, d) {
+      var val = accessor(d);
+      (Array.isArray(val) ?
+        interval.range(interval.floor(val[0]), val[1]) :
+        [interval.floor(val)]
+      ).forEach(function (t) {
+        out.push(Object.assign({}, d, U.obj([timekey, t.getTime()])));
+      });
+      return out;
+    }, []);
+  },
+
 };

@@ -4,32 +4,31 @@ var U = require('./utility.js');
 var StreamTransform = require('./StreamTransform.js');
 var Display = require('./display/Display.js');
 
-function Stream(data) {
-  StreamTransform.call(this, data);
+function Stream(data, d3lib) {
+  StreamTransform.call(this, data, d3lib);
   this.displays = [];
 }
 
 Stream.prototype = Object.create(StreamTransform.prototype);
 Stream.prototype.constructor = Stream;
 
-Stream.prototype.load = function(url, options, d3lib) {
-  var self = this;
+Stream.prototype.load = function(url, options) {
   var opt = options || {};
-  var d3r = d3lib || d3;
-  loadAsPromise(url).then(function(data) {
+  var self = this;
+  (opt.loader || d3loader)(url, opt, this.d3).then(function(data) {
     self.update(data, opt);
   });
   return this;
 
-  function loadAsPromise(url) {
-    if (opt.format == 'csv') {
-      return d3r.csv(url);
-    } else if (opt.format == 'tsv') {
-      return d3r.tsv(url);
-    } else if (opt.format == 'xml') {
-      return d3r.xml(url);
+  function d3loader(url, options, d3) {
+    if (options.format == 'csv') {
+      return d3.csv(url);
+    } else if (options.format == 'tsv') {
+      return d3.tsv(url);
+    } else if (options.format == 'xml') {
+      return d3.xml(url);
     }
-    return d3r.json(url);
+    return d3.json(url);
   }
 };
 
@@ -39,8 +38,8 @@ Stream.prototype.branch = function() {
   return b;
 };
 
-Stream.prototype.display = function(element, options, d3lib) {
-  var d = new Display(d3lib || d3, element, options, this.unstream());
+Stream.prototype.display = function(element, options) {
+  var d = new Display(this.d3, element, options, this.unstream());
   this.displays.push(d);
   return d;
 };
@@ -86,3 +85,37 @@ Stream.prototype.empty = function (item) {
 Stream.prototype.add = function (item) {
   return this.update(item, { append: true });
 };
+
+Stream.prototype.timeInterval = function (name, sub) {
+  if (name == 'hour' || (sub && name == 'day')) {
+    return this.d3.timeHour;
+  } else if (name == 'day' || (sub && name == 'week')) {
+    return this.d3.timeDay;
+  } else if (name == 'week' || (sub && name == 'month')) {
+    return this.d3.timeWeek;
+  } else if (name == 'month' || (sub && name == 'year')) {
+    return this.d3.timeMonth;
+  } else if (name == 'year') {
+    return this.d3.timeYear;
+  }
+  return this.d3.timeDay;
+};
+
+Stream.prototype.timeFormat = function (name, sub) {
+  if (name == 'hour' || (sub && name == 'day')) {
+    return this.d3.timeFormat('%H');
+  } else if (name == 'day' || (sub && name == 'week')) {
+    return this.d3.timeFormat('%a');
+  } else if (name == 'week' || (sub && name == 'month')) {
+    var f = this.d3.timeFormat('%U');
+    return function (t) {
+      var n = 1 + parseInt(f(t));
+      return n > 52 ? n - 52 : n;
+    };
+  } else if (name == 'month' || (sub && name == 'year')) {
+    return this.d3.timeFormat('%m');
+  } else if (name == 'year') {
+    return this.d3.timeFormat('%Y');
+  }
+  return this.d3.timeFormat('%d.%m.');
+}
