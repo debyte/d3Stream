@@ -45,6 +45,15 @@ circle.d3stream-focus-selection, rect.d3stream-focus-selection {
   stroke-width: 4;
 }
 
+.d3stream-grid-x .tick line, .d3stream-grid-y .tick line {
+  stroke: lightgrey;
+  opacity: 0.7;
+  z-index: 0;
+}
+.d3stream-grid-x .path, .d3stream-grid-y .path {
+  stroke-width: 0;
+}
+
 .d3stream-labels {
   text-align: center;
 }

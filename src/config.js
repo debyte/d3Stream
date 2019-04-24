@@ -8,6 +8,8 @@ module.exports = {
 
   horizontalAxis: true,
   verticalAxis: true,
+  horizontalGrid: false,
+  verticalGrid: false,
   groupLabels: false,
   combine: true,
   curveLine: false,

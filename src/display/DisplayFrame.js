@@ -2,6 +2,8 @@ module.exports = DisplayFrame;
 
 var C_AXIS_X = 'd3stream-axis-x';
 var C_AXIS_Y = 'd3stream-axis-y';
+var C_GRID_X = 'd3stream-grid-x';
+var C_GRID_Y = 'd3stream-grid-y';
 var C_LABELS = 'd3stream-labels';
 
 var U = require('../utility.js');
@@ -133,6 +135,12 @@ function makeAxisHorizontal(display, axis, data) {
     var g = prepareAxis(display, this, C_AXIS_X, ax, d3ax);
     g.attr('transform', DU.translateMargins(display.config, 0, display.size.inHeight))
       .call(d3ax);
+    if (display.config.verticalGrid) {
+      var g = prepareAxis(display, this, C_GRID_X, ax, d3ax);
+      d3ax.tickSize(-display.size.inHeight, 0, 0).tickFormat('');
+      g.attr('transform', DU.translateMargins(display.config, 0, display.size.inHeight))
+        .call(d3ax);
+    }
   });
 }
 
@@ -143,6 +151,12 @@ function makeAxisVertical(display, axis, data) {
     var g = prepareAxis(display, this, C_AXIS_Y, ax, d3ax);
     g.attr('transform', DU.translateMargins(display.config))
       .call(d3ax);
+    if (display.config.horizontalGrid) {
+      var g = prepareAxis(display, this, C_GRID_Y, ax, d3ax);
+      d3ax.tickSize(-display.size.inWidth, 0, 0).tickFormat('');
+      g.attr('transform', DU.translateMargins(display.config))
+        .call(d3ax);
+    }
   });
 }
 
