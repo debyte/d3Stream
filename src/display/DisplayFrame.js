@@ -10,17 +10,19 @@ var U = require('../utility.js');
 var DU = require('./utility.js');
 var DisplayBase = require('./DisplayBase.js');
 
-function DisplayFrame(d3, element, options, data) {
-  DisplayBase.call(this, d3, element, options, data);
-  this.domainFunction = {};
-  if (this.config.horizontalAxis) {
-    this.addFrame(makeAxisHorizontal);
-  }
-  if (this.config.verticalAxis) {
-    this.addFrame(makeAxisVertical);
-  }
-  if (this.config.groupLabels) {
-    this.addFrame(makeLabels);
+function DisplayFrame(d3, element, options, data, parent, b) {
+  DisplayBase.call(this, d3, element, options, data, parent, b);
+  this.domainFunction = parent ? parent.domainFunction : {};
+  if (parent === undefined) {
+    if (this.config.horizontalAxis) {
+      this.addFrame(makeAxisHorizontal);
+    }
+    if (this.config.verticalAxis) {
+      this.addFrame(makeAxisVertical);
+    }
+    if (this.config.groupLabels) {
+      this.addFrame(makeLabels);
+    }
   }
 }
 

@@ -10,21 +10,23 @@ var config = require('../config.js');
 var StreamTransform = require('../StreamTransform.js');
 var Select = require('./Select.js');
 
-function DisplayBase(d3, element, options, data) {
+function DisplayBase(d3, element, options, data, parent, b) {
   StreamTransform.call(this, data);
   this.d3 = d3;
   this.config = Object.assign({}, config, options);
-  this.display = createDisplay(d3, element, this.config);
-  this.size = { width: 0, height: 0, inWidth: 0, inHeight: 0 };
-  this.select = new Select(d3, this.config);
+  this.b = b || 0;
+  this.display = parent ? parent.display : createDisplay(d3, element, this.config);
+  this.size = parent ? parent.size : { width: 0, height: 0, inWidth: 0, inHeight: 0 };
+  this.select = parent ? parent.select : new Select(d3, this.config);
   this.charts = [];
   this.frames = [];
+  this.branches = [];
 }
 
 DisplayBase.prototype = Object.create(StreamTransform.prototype);
 DisplayBase.prototype.constructor = DisplayBase;
 
-DisplayBase.prototype.update = function (data) {
+DisplayBase.prototype.update = function (data, baxis) {
   if (data !== undefined) {
     this.data = data;
   }
@@ -32,23 +34,26 @@ DisplayBase.prototype.update = function (data) {
   this.select.clear();
 
   var transformedData = this.unstream() || [];
-  if (transformedData.length == 0 || !Array.isArray(transformedData[0])) {
-    transformedData = [transformedData];
-  }
-  var axis = DU.axis(this, transformedData, this.config);
-  var self = this;
+  var packedData = (transformedData.length == 0 || !Array.isArray(transformedData[0])) ?
+    [transformedData] : transformedData;
+  var axis = baxis || DU.axis(this, packedData, this.config);
 
+  this.branches.forEach(function (branch, i) {
+    branch.update(transformedData, axis);
+  });
+
+  var self = this;
   this.charts.forEach(function (chart, i) {
-    var plots = transformedData.map(function (d, r) {
-      return getPlot(self.display, self.select, self.size, self.config, i, r);
+    var plots = packedData.map(function (d, r) {
+      return getPlot(self.display, self.select, self.size, self.config, i, r, self.b);
     });
-    chart[0](self, plots, axis, transformedData, chart[1]);
-    var r = transformedData.length;
-    while (removePlot(self.display, self.config, i, r)) r += 1;
+    chart[0](self, plots, axis, packedData, chart[1]);
+    var r = packedData.length;
+    while (removePlot(self.display, self.config, i, r, self.b)) r += 1;
   });
 
   this.frames.forEach(function (frame, i) {
-    frame[0](self, axis, transformedData, frame[1]);
+    frame[0](self, axis, packedData, frame[1]);
   });
 
   if (this.config.update) {
@@ -65,6 +70,12 @@ DisplayBase.prototype.addFrame = function (frameFunction, options) {
   this.frames.push([frameFunction, Object.assign({}, this.config, options)]);
   return this;
 };
+
+DisplayBase.prototype.addBranch = function(cls) {
+  var d = new cls(this.d3, null, this.config, this.data, this, this.branches.length + 1);
+  this.branches.push(d);
+  return d;
+}
 
 DisplayBase.prototype.axis = function (data, variable) {
   var domain = this.domain(data, variable);
@@ -118,7 +129,7 @@ function getSize(element, options) {
   };
 }
 
-function getPlot(display, select, size, options, i, r) {
+function getPlot(display, select, size, options, i, r, b) {
   var clsSvg = [C_SVG, options.combine ? 1 : r].join('-');
   var svg = display.select(DU.s(clsSvg));
   if (svg.empty()) {
@@ -127,7 +138,7 @@ function getPlot(display, select, size, options, i, r) {
   }
   svg.attr('width', size.width).attr('height', size.height);
 
-  var clsPlot = [C_PLOT, r, i].join('-');
+  var clsPlot = [C_PLOT, b, r, i].join('-');
   var plot = svg.select(DU.s(clsPlot));
   if (plot.empty()) {
     plot = svg.append('g')
@@ -137,7 +148,7 @@ function getPlot(display, select, size, options, i, r) {
   return plot;
 }
 
-function removePlot(display, options, i, r) {
+function removePlot(display, options, i, r, b) {
   var clsSvg = [C_SVG, options.combine ? 1 : r].join('-');
   var svg = display.select(DU.s(clsSvg));
   if (svg.empty()) return false;
@@ -146,7 +157,7 @@ function removePlot(display, options, i, r) {
     return true;
   }
 
-  var clsPlot = [C_PLOT, r, i].join('-');
+  var clsPlot = [C_PLOT, b, r, i].join('-');
   var plot = svg.select(DU.s(clsPlot));
   if (plot.empty()) return false;
   plot.remove();

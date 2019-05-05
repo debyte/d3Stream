@@ -6,8 +6,8 @@ var lines = require('./lines.js');
 var bars = require('./bars.js');
 var tables = require('./tables.js');
 
-function Display(d3, element, options, data) {
-  DisplayFrame.call(this, d3, element, options, data);
+function Display(d3, element, options, data, parent, b) {
+  DisplayFrame.call(this, d3, element, options, data, parent, b);
 
   var self = this;
   resize(d3, function () {
@@ -17,6 +17,10 @@ function Display(d3, element, options, data) {
 
 Display.prototype = Object.create(DisplayFrame.prototype);
 Display.prototype.constructor = Display;
+
+Display.prototype.branch = function () {
+  return this.addBranch(Display);
+};
 
 Display.prototype.scatterPlot = function (options) {
   return this.addChart(lines.scatterPlot, options);
