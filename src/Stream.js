@@ -22,13 +22,13 @@ Stream.prototype.load = function(url, options) {
 
   function d3loader(url, options, d3) {
     if (options.format == 'csv') {
-      return d3.csv(url);
+      return d3.csv(url, { credentials: 'same-origin' });
     } else if (options.format == 'tsv') {
-      return d3.tsv(url);
+      return d3.tsv(url, { credentials: 'same-origin' });
     } else if (options.format == 'xml') {
-      return d3.xml(url);
+      return d3.xml(url, { credentials: 'same-origin' });
     }
-    return d3.json(url);
+    return d3.json(url, { credentials: 'same-origin' });
   }
 };
 
