@@ -15,7 +15,7 @@ Stream.prototype.constructor = Stream;
 Stream.prototype.load = function(url, options) {
   var opt = options || {};
   var self = this;
-  (opt.loader || d3loader)(url, opt, this.d3).then(function(data) {
+  (opt.loader || d3loader)(url, opt, this.d3).then(function(data) {
     self.update(data, opt);
   });
   return this;
@@ -87,11 +87,11 @@ Stream.prototype.add = function (item) {
 };
 
 Stream.prototype.timeInterval = function (name, sub) {
-  if (name == 'hour' || (sub && name == 'day')) {
+  if (name == 'hour' || (sub && name == 'day')) {
     return this.d3.timeHour;
-  } else if (name == 'day' || (sub && name == 'week')) {
+  } else if (name == 'day' || (sub && name == 'week')) {
     return this.d3.timeDay;
-  } else if (name == 'week' || (sub && name == 'month')) {
+  } else if (name == 'week' || (sub && name == 'month')) {
     return this.d3.timeWeek;
   } else if (name == 'month' || (sub && name == 'year')) {
     return this.d3.timeMonth;
@@ -102,11 +102,11 @@ Stream.prototype.timeInterval = function (name, sub) {
 };
 
 Stream.prototype.timeFormat = function (name, sub) {
-  if (name == 'hour' || (sub && name == 'day')) {
+  if (name == 'hour' || (sub && name == 'day')) {
     return this.d3.timeFormat('%H');
-  } else if (name == 'day' || (sub && name == 'week')) {
+  } else if (name == 'day' || (sub && name == 'week')) {
     return this.d3.timeFormat('%a');
-  } else if (name == 'week' || (sub && name == 'month')) {
+  } else if (name == 'week' || (sub && name == 'month')) {
     var f = this.d3.timeFormat('%U');
     return function (t) {
       var n = 1 + parseInt(f(t));

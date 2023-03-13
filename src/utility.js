@@ -36,7 +36,7 @@ module.exports = {
   },
 
   isNonEmpty: function (val) {
-    return val && (val.trim === undefined || val.trim() !== '');
+    return val && (val.trim === undefined || val.trim() !== '');
   },
 
   remove: function (list, val) {
@@ -69,7 +69,7 @@ module.exports = {
 
   countEach: function (vals) {
     return this.asList(vals).reduce(function (out, val) {
-      out[val] = (out[val] || 0) + 1;
+      out[val] = (out[val] || 0) + 1;
       return out;
     }, {});
   },
@@ -198,7 +198,7 @@ if (!Object.assign) {
     merged = arguments.length > 0 ? arguments[0] : undefined;
     for (var i = 1; i < arguments.length; i++) {
       var a = arguments[i];
-      Object.keys(a || {}).forEach(function (k) {
+      Object.keys(a || {}).forEach(function (k) {
         merged[k] = a[k];
       });
     }

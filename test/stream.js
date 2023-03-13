@@ -17,7 +17,7 @@ module.exports = {
       }
     }).load("test.csv", { format: "csv" })
     .filter(function (d, i) {
-      return +d.a == 1 || +d.b == 1 || +d.c == 1;
+      return +d.a == 1 || +d.b == 1 || +d.c == 1;
     }).map(function (d, i) {
       return (+d.a) + (+d.b) + (+d.c) + (+d.e) + (+d.e) + (+d.f);
     });

@@ -62,7 +62,7 @@ function drawDots(display, plot, axis, data, options) {
     .transition(trans)
     .attr('cx', function (d) { return axis.x.pick(d); })
     .attr('cy', function (d) { return axis.y.pick(d); })
-    .attr('r', function (d) { return axis.z.pick(d) || axis.z.pickMin(); })
+    .attr('r', function (d) { return axis.z.pick(d) || axis.z.pickMin(); })
     .style('fill', function (d) { return DU.fill(d, axis.x, options, group(d)); })
   if (options.chartText) {
     merged.select('text')

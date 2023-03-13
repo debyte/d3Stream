@@ -8,8 +8,8 @@ module.exports = {
 
   translateMargins: function (options, x, y) {
     return this.translate(
-      options.marginLeft + (x || 0),
-      options.marginTop + (y || 0)
+      options.marginLeft + (x || 0),
+      options.marginTop + (y || 0)
     );
   },
 
@@ -38,7 +38,7 @@ module.exports = {
   },
 
   groupSelector: function (options) {
-    var groups = options.groups ? U.unstream(options.groups): {};
+    var groups = options.groups ? U.unstream(options.groups): {};
     return function (d) {
       return groups[d[options.groupVariable]];
     };
@@ -67,7 +67,7 @@ module.exports = {
     var sdata = (options.reverseStack ? dataSeries.reverse() : dataSeries).map(function (serie) {
       return  serie.map(function (d) {
         var b = ybuf[d[axis.x.variable]] || 0;
-        var n = b + d[axis.y.variable] || 0;
+        var n = b + d[axis.y.variable] || 0;
         var out = Object.assign({}, d, U.obj([axis.y.baseVariable, b], [axis.y.variable, n]));
         ybuf[d[axis.x.variable]] = n;
         return out;

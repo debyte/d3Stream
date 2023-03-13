@@ -58,7 +58,7 @@
         var counts = {};
         for (var i = 0; i < vals.length; i++) {
           var t = vals[i];
-          var n = (counts[t] || 0) + 1;
+          var n = (counts[t] || 0) + 1;
           counts[t] = n;
           if (n === 1) {
             texts.push(t);

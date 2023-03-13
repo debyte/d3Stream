@@ -110,6 +110,6 @@ StreamTransform.prototype.frequencies = function (groupkey, countkey) {
 
 StreamTransform.prototype.periodically = function (period, accessor, timekey) {
   return this.addTransformation(function (data) {
-    return C.periodically(data, period, accessor, timekey || 't', this.d3);
+    return C.periodically(data, period, accessor, timekey || 't', this.d3);
   });
 }

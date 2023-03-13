@@ -89,7 +89,7 @@ DisplayBase.prototype.axis = function (data, variable) {
     pick: function (d, w) { return picker(this.scale, d, this.variable, w); },
     pickBase: function (d, w) { return picker(this.scale, d, this.baseVariable, w, 0); },
     pickDistance: function (d) { return Math.abs(this.pickBase(d) - this.pick(d)); },
-    pickValue: function (d) { return Math.abs(d[this.variable] - (d[this.baseVariable] || 0)); },
+    pickValue: function (d) { return Math.abs(d[this.variable] - (d[this.baseVariable] || 0)); },
     pickZero: function () { return this.scale(0); },
     pickMin: function () { return this.scale(this.domain[0]); }
   };
@@ -119,7 +119,7 @@ function createDisplay(d3, element, options) {
 }
 
 function getSize(element, options) {
-  var width = options.width || element.node().offsetWidth;
+  var width = options.width || element.node().offsetWidth;
   var height = options.height || element.node().offsetHeight;
   return {
     width: width,

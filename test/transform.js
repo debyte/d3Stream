@@ -11,7 +11,7 @@ module.exports = {
 
   "Filter transform": function (assert) {
     var a = new d3Stream(data).filter(function (d, i) {
-      return i < 10 || d.one >= 80;
+      return i < 10 || d.one >= 80;
     }).array();
     assert.equal(a.length, 30);
     assert.deepEqual(a[0], { one: 0, two: 2});

@@ -40,7 +40,7 @@ module.exports = function (model, width, height) {
   }
 
   function optionsArray(field) {
-    var opts = [].concat(field.enum) || [];
+    var opts = [].concat(field.enum) || [];
     var titles = field.titleMap || {};
     return opts.map(function (key) {
       return { key: key, title: titles[key] || key };
