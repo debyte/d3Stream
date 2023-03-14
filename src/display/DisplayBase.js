@@ -113,7 +113,7 @@ function createDisplay(d3, element, options) {
     element = element[0];
   }
   element = d3.select(element);
-  display = element.append('div');
+  var display = element.append('div');
   display.classed(DU.a(C_DISPLAY, options.class), true);
   return display;
 }

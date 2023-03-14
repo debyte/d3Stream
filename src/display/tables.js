@@ -30,34 +30,51 @@ function table(display, axis, dataSeries, options) {
 }
 
 function table2d(display, axis, dataSeries, options) {
+  var xaxis = axis[options.horizontalVariable];
+  var yaxis = axis[options.verticalVariable];
   display.display.selectAll('table').remove();
-  var group = DU.groupSelector(options);
-  var table = display.display.append('table')
-    .attr('class', C_TABLE);
-  
+  var rows = [];
+  var cols = [];
+  var values = [];
+  for (var i = 0; i < dataSeries.length; i++) {
+    for (var j = 0; j < dataSeries[i].length; j++) {
+      var d = dataSeries[i][j];
+      var x = xaxis.pickValue(d);
+      if (!rows.includes(x)) {
+        rows.push(x);
+      }
+      var r = values[rows.indexOf(x)] || [];
+      var g = d[options.groupVariable];
+      if (!cols.includes(g)) {
+        cols.push(g);
+      }
+      r[cols.indexOf(g)] = yaxis.pickValue(d);
+      values[rows.indexOf(x)] = r;
+    }
+  }
+
   // Head
+  var table = display.display.append('table')
+    .attr('class', C_TABLE);  
   var tr = table.append('tr');
   tr.append('th');
   var sums = [];
-  for (var i = 0; i < dataSeries[0].length; i++) {
-    var d = dataSeries[0][i];
-    tr.append('th').text(U.get(group(d), options.labelVariable) || d[options.groupVariable]);
+  var group = DU.groupSelector(options);
+  for (var i = 0; i < cols.length; i++) {
+    var d = Object.fromEntries([[options.groupVariable, cols[i]]]);
+    tr.append('th').text(U.get(group(d), options.labelVariable) || cols[i]);
     sums[i] = 0;
   }
   tr.append('th');
   sums[i] = 0;
 
   // Value rows
-  var xaxis = axis[options.horizontalVariable];
-  var yaxis = axis[options.verticalVariable];
-  for (i = 0; i < dataSeries.length; i++) {
+  for (i = 0; i < rows.length; i++) {
     tr = table.append('tr');
-    var x = xaxis.pickValue(dataSeries[i][0]);
-    tr.append('th').text(U.get(U.get(xaxis.config, x), options.labelVariable) || x);
+    tr.append('th').text(U.get(U.get(xaxis.config, rows[i]), options.labelVariable) || rows[i]);
     var s = 0;
-    for (var j = 0; j < dataSeries[i].length; j++) {
-      var d = dataSeries[i][j];
-      var y = yaxis.pickValue(d);
+    for (j = 0; j < cols.length; j++) {
+      var y = values[i][j];
       tr.append('td').text(y);
       s += y;
       sums[j] += y;
@@ -69,7 +86,7 @@ function table2d(display, axis, dataSeries, options) {
   // Vertical sums
   tr = table.append('tr');
   tr.append('td');
-  for (i = 0; i <= dataSeries[0].length; i++) {
+  for (i = 0; i <= cols.length; i++) {
     tr.append('td').append('em').text(sums[i]);
   }
 }

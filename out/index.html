@@ -87,6 +87,22 @@
           .stackedBarChart()
           .table2d()
           .update();
+
+        var s3 = new d3Stream([
+          [
+            { "group": "3", "x": "1", "y": 2 },
+            { "group": "3", "x": "2", "y": 0 }
+          ],
+          [
+            { "group": "4", "x": "1", "y": 1 },
+            { "group": "4", "x": "2", "y": 5 }
+          ]
+        ], d3);
+        s3.display('#whatnot .card-body')
+          .domainBands(['x'], ["1", "2"])
+          .stackedBarChart()
+          .table2d()
+          .update();
       });
     </script>
   </head>
@@ -107,6 +123,12 @@
       <div class="card" id="bars">
         <div class="card-header bg-info text-white">
           Bars
+        </div>
+        <div class="card-body"></div>
+      </div>
+      <div class="card" id="whatnot">
+        <div class="card-header bg-info text-white">
+          Test
         </div>
         <div class="card-body"></div>
       </div>
