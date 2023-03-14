@@ -88,14 +88,15 @@ module.exports = {
   },
 
   repeat: function (data, other) {
-    return this.asList(data).map(function (z) {
+    return this.asList(other).map(function (z) {
       return [data, z];
     });
   },
 
   cross: function (data, other) {
-    return this.asList(data).map(function (d) {
-      return this.asList(other).map(function (z) {
+    const t = this;
+    return t.asList(data).map(function (d) {
+      return t.asList(other).map(function (z) {
         return [d, z];
       });
     });

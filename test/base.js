@@ -2,31 +2,31 @@ module.exports = {
 
   "Empty stream": function (assert) {
     var s = new d3Stream();
-    assert.deepEqual(s.array(), []);
+    assert.deepEqual(s.unstream(), undefined);
   },
 
   "Plain stream": function (assert) {
     var s = new d3Stream(data);
-    assert.deepEqual(s.array(), data);
-    s = new d3Stream("test");
-    assert.deepEqual(s.array(), ["test"]);
+    assert.deepEqual(s.unstream(), data);
+    s = new d3Stream(["test"]);
+    assert.deepEqual(s.unstream(), ["test"]);
   },
 
   "Map stream": function (assert) {
     var s = new d3Stream(data).map(mapCtoX);
-    assert.deepEqual(s.array(), data.map(mapCtoX));
+    assert.deepEqual(s.unstream(), data.map(mapCtoX));
   },
 
   "Map stream twice": function (assert) {
     var s = new d3Stream(data).map(mapCtoX).map(mapXtoC);
-    assert.deepEqual(s.array(), data);
+    assert.deepEqual(s.unstream(), data);
   },
 
   "Reset stream": function (assert) {
     var s = new d3Stream(data).map(mapCtoX);
-    assert.deepEqual(s.array(), data.map(mapCtoX));
+    assert.deepEqual(s.unstream(), data.map(mapCtoX));
     s.reset();
-    assert.deepEqual(s.array(), data);
+    assert.deepEqual(s.unstream(), data);
   },
 
 };

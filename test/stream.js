@@ -26,7 +26,7 @@ module.exports = {
 };
 
 function createStreamWithDisplay(displayCallback) {
-  var s = new d3Stream();
+  var s = new d3Stream(undefined, d3);
   var d = s.display();
   d.update = displayCallback;
   return s;

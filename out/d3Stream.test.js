@@ -3,31 +3,31 @@ module.exports = {
 
   "Empty stream": function (assert) {
     var s = new d3Stream();
-    assert.deepEqual(s.array(), []);
+    assert.deepEqual(s.unstream(), undefined);
   },
 
   "Plain stream": function (assert) {
     var s = new d3Stream(data);
-    assert.deepEqual(s.array(), data);
-    s = new d3Stream("test");
-    assert.deepEqual(s.array(), ["test"]);
+    assert.deepEqual(s.unstream(), data);
+    s = new d3Stream(["test"]);
+    assert.deepEqual(s.unstream(), ["test"]);
   },
 
   "Map stream": function (assert) {
     var s = new d3Stream(data).map(mapCtoX);
-    assert.deepEqual(s.array(), data.map(mapCtoX));
+    assert.deepEqual(s.unstream(), data.map(mapCtoX));
   },
 
   "Map stream twice": function (assert) {
     var s = new d3Stream(data).map(mapCtoX).map(mapXtoC);
-    assert.deepEqual(s.array(), data);
+    assert.deepEqual(s.unstream(), data);
   },
 
   "Reset stream": function (assert) {
     var s = new d3Stream(data).map(mapCtoX);
-    assert.deepEqual(s.array(), data.map(mapCtoX));
+    assert.deepEqual(s.unstream(), data.map(mapCtoX));
     s.reset();
-    assert.deepEqual(s.array(), data);
+    assert.deepEqual(s.unstream(), data);
   },
 
 };
@@ -87,7 +87,7 @@ module.exports = {
 };
 
 function createStreamWithDisplay(displayCallback) {
-  var s = new d3Stream();
+  var s = new d3Stream(undefined, d3);
   var d = s.display();
   d.update = displayCallback;
   return s;
@@ -99,7 +99,7 @@ module.exports = {
   "Map transform": function (assert) {
     var a = new d3Stream(data).map(function (d, i) {
       return [i, d.two];
-    }).array();
+    }).unstream();
     assert.equal(a.length, 100);
     assert.deepEqual(a[0], [0, 2]);
     assert.deepEqual(a[99], [99, 2]);
@@ -108,7 +108,7 @@ module.exports = {
   "Filter transform": function (assert) {
     var a = new d3Stream(data).filter(function (d, i) {
       return i < 10 || d.one >= 80;
-    }).array();
+    }).unstream();
     assert.equal(a.length, 30);
     assert.deepEqual(a[0], { one: 0, two: 2});
     assert.deepEqual(a[29], { one: 99, two: 2 });
@@ -117,19 +117,19 @@ module.exports = {
   "Navigate transform": function (assert) {
     var a = new d3Stream(
       { data: { first: [1, 2, 3], second: [] }}
-    ).navigate('data.first').array();
+    ).navigate('data.first').unstream();
     assert.deepEqual(a, [1, 2, 3]);
   },
 
   "Cross transform": function (assert) {
-    var a = new d3Stream(data).cross(['a', 'b']).array();
+    var a = new d3Stream(data).cross(['a', 'b']).unstream();
     assert.equal(a.length, 100);
     assert.deepEqual(a[0], [[{ one: 0, two: 2}, 'a'], [{ one: 0, two: 2}, 'b']]);
     assert.deepEqual(a[99], [[{ one: 99, two: 2}, 'a'], [{ one: 99, two: 2}, 'b']]);
   },
 
   "Repeat transform": function (assert) {
-    var a = new d3Stream(data).repeat(['a', 'b']).array();
+    var a = new d3Stream(data).repeat(['a', 'b']).unstream();
     assert.equal(a.length, 2);
     assert.deepEqual(a[0][0], data);
     assert.equal(a[0][1], 'a');
@@ -142,7 +142,7 @@ module.exports = {
       function (d) { return d.one < 10; },
       function (d) { return d.one < 50; },
       function (d) { return d.two == 2; },
-    ]).array();
+    ]).unstream();
     assert.equal(a[0].length, 10);
     assert.equal(a[1].length, 40);
     assert.equal(a[2].length, 50);
@@ -155,7 +155,7 @@ module.exports = {
   },
 
   "Cumulate transform": function (assert) {
-    var a = new d3Stream(data).cumulate('one').array();
+    var a = new d3Stream(data).cumulate('one').unstream();
     assert.equal(a.length, 100);
     var sum = 0;
     for (var i = 0; i < 100; i++) {
@@ -169,7 +169,7 @@ module.exports = {
       return s
         .map(function (d) { return d + 1; })
         .filter(function (d, i) { return i < 2; });
-    }).array();
+    }).unstream();
     assert.deepEqual(a, [[2, 3], [4, 3]]);
   },
 };
