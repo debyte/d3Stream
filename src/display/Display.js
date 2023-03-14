@@ -53,3 +53,7 @@ Display.prototype.groupedBarChart = function (options) {
 Display.prototype.table = function (options) {
   return this.addFrame(tables.table, options);
 };
+
+Display.prototype.table2d = function (options) {
+  return this.addFrame(tables.table2d, options);
+};
