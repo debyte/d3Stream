@@ -69,17 +69,18 @@ function table2d(display, axis, dataSeries, options) {
   sums[i] = 0;
 
   // Value rows
+  var formatter = DU.formatter(display.d3, options);
   for (i = 0; i < rows.length; i++) {
     tr = table.append('tr');
     tr.append('th').text(U.get(U.get(xaxis.config, rows[i]), options.labelVariable) || rows[i]);
     var s = 0;
     for (j = 0; j < cols.length; j++) {
       var y = values[i][j];
-      tr.append('td').text(y);
+      tr.append('td').text(DU.text(y, formatter));
       s += y;
       sums[j] += y;
     }
-    tr.append('td').append('em').text(s);
+    tr.append('td').append('em').text(DU.text(s, formatter));
     sums[j] += s;
   }
 
@@ -87,6 +88,6 @@ function table2d(display, axis, dataSeries, options) {
   tr = table.append('tr');
   tr.append('td');
   for (i = 0; i <= cols.length; i++) {
-    tr.append('td').append('em').text(sums[i]);
+    tr.append('td').append('em').text(DU.text(sums[i], formatter));
   }
 }
