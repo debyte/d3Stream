@@ -76,11 +76,11 @@ function table2d(display, axis, dataSeries, options) {
     var s = 0;
     for (j = 0; j < cols.length; j++) {
       var y = values[i][j];
-      tr.append('td').text(DU.text(y, formatter));
+      tr.append('td').text(formatter(y));
       s += y;
       sums[j] += y;
     }
-    tr.append('td').append('em').text(DU.text(s, formatter));
+    tr.append('td').append('em').text(formatter(s));
     sums[j] += s;
   }
 
@@ -88,6 +88,6 @@ function table2d(display, axis, dataSeries, options) {
   tr = table.append('tr');
   tr.append('td');
   for (i = 0; i <= cols.length; i++) {
-    tr.append('td').append('em').text(DU.text(sums[i], formatter));
+    tr.append('td').append('em').text(formatter(sums[i]));
   }
 }
